@@ -5,7 +5,7 @@ import { MainContext } from '../Controller/MainProvider'
 import { Link } from 'react-router-dom'
 function Navbar() {
 
-    const { instituteID, HandleLogOut, institute } = useContext(MainContext)
+    const { userId, HandleLogOut, institute } = useContext(MainContext)
     return (
         <>
             <nav className="layout-navbar container-fluid navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar" >
@@ -68,7 +68,7 @@ function Navbar() {
                                             </div>
                                             <Link className="flex-grow-1" to={'/instituteprofile'}>
                                                 <span className="fw-semibold d-block">{institute?.name}</span>
-                                                <small className="text-muted">Id : {instituteID}</small>
+                                                <small className="text-muted">Id : {userId}</small>
                                             </Link>
                                         </div>
                                     </a>

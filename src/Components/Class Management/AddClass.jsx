@@ -21,10 +21,10 @@ const AddClass = () => {
 
     });
 
-    const { instituteID } = useContext(MainContext);
+    const { userId } = useContext(MainContext);
     // Initial form values
     const initialValues = {
-        instituteId: instituteID,
+        instituteId: userId,
         courseName: "",
         courseCode: "",
         courseDescription: "",

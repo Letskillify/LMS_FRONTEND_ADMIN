@@ -1,342 +1,403 @@
+import axios from 'axios';
+import { Formik, Form } from 'formik'
 import React, { useState } from 'react'
+import * as Yup from 'yup';
+
+
+const validationSchema = Yup.object().shape({
+    firmId: Yup.string().required('Firm ID is required'),
+    name: Yup.string().required('Name is required'),
+    alias: Yup.string().nullable(), // Optional
+    state: Yup.string().required('State is required'),
+    country: Yup.string().required('Country is required'),
+    city: Yup.string().required('City is required'),
+    address: Yup.string().required('Address is required'),
+    phone: Yup.string()
+        .matches(/^\d{10}$/, 'Phone number must be 10 digits')
+        .required('Phone number is required'),
+    alternatePhone: Yup.string()
+        .matches(/^\d{10}$/, 'Alternate phone number must be 10 digits')
+        .nullable(), // Optional
+    email: Yup.string().email('Invalid email address').required('Email is required'),
+    website: Yup.string()
+        .url('Invalid website URL')
+        .nullable(), // Optional
+    contactPersons: Yup.array()
+        .of(
+            Yup.object().shape({
+                name: Yup.string().required('Contact person name is required'),
+                designation: Yup.string().nullable(), // Optional
+                phone: Yup.string()
+                    .matches(/^\d{10}$/, 'Phone number must be 10 digits')
+                    .nullable(), // Optional
+                email: Yup.string().email('Invalid email address').nullable(), // Optional
+            })
+        )
+        .required('At least one contact person is required'),
+    companyCategory: Yup.string().nullable(), // Optional
+    currencyType: Yup.string().nullable(), // Optional
+    aadharNumber: Yup.string()
+        .matches(/^\d{12}$/, 'Aadhar number must be 12 digits')
+        .nullable(), // Optional
+    panNumber: Yup.string()
+        .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN number format')
+        .nullable(), // Optional
+    bankDetails: Yup.array()
+        .of(
+            Yup.object().shape({
+                accountHolderName: Yup.string().required('Account holder name is required'),
+                accountNumber: Yup.string().required('Account number is required'),
+                ifscCode: Yup.string().required('IFSC code is required'),
+                bankName: Yup.string().required('Bank name is required'),
+                branchName: Yup.string().nullable(), // Optional
+            })
+        )
+        .required('Bank details are required'),
+    businessType: Yup.string().required('Business type is required'),
+    gst: Yup.object().shape({
+        type: Yup.string().required('GST type is required'),
+        gstPercentage: Yup.number()
+            .min(0, 'GST percentage must be at least 0')
+            .max(100, 'GST percentage cannot exceed 100')
+            .nullable(), // Optional
+        gstNumber: Yup.string().nullable(), // Optional
+        firmType: Yup.string().nullable(), // Optional
+    }),
+    businessDetails: Yup.object().shape({
+        registrationNumber: Yup.string().required('Registration number is required'),
+        incorporationDate: Yup.date().required('Incorporation date is required'),
+        industryType: Yup.string().nullable(), // Optional
+    }),
+});
+
 
 function Stock() {
+    const [stockApi, setstockApi] = useState()
 
-    const [paymentMode, setPaymentMode] = useState('');
+    const [initialvalue, setinitialvalue] = useState({
+
+        firmId: '',
+        name: '',
+        alias: '',
+        state: '',
+        country: '',
+        city: '',
+        address: '',
+        phone: '',
+        alternatePhone: '',
+        email: '',
+        website: '',
+        contactPersons: [{ name: '', designation: '', phone: '', email: '' }],
+        companyCategory: '',
+        currencyType: '',
+        aadharNumber: '',
+        panNumber: '',
+        bankDetails: [{
+            accountHolderName: '',
+            accountNumber: '',
+            ifscCode: '',
+            bankName: '',
+            branchName: ''
+        }],
+        businessType: '',
+        gst: {
+            type: '',
+            gstPercentage: '',
+            gstNumber: '',
+            firmType: ''
+        },
+        businessDetails: {
+            registrationNumber: '',
+            incorporationDate: '',
+            industryType: ''
+        },
+    })
+
+
+    const StockPostApi = async (v) => {
+        try {
+            const response = await axios.post('', v, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+            if (response.status === 201) {
+                alert("Data Sent Successfully")
+
+            }
+
+        } catch (error) {
+            console.error(" Something is Error :", error)
+        }
+    }
+    console.log();
+
+
+
+
     return (
         <>
 
             {/* <!-- Stock Account Buttons --> */}
             <h2 className='text-center mt-4'>Stock Account</h2>
-            <div class="stockAccount text-center mt-3">
+            <div className="stockAccount text-center mt-3">
                 <button className='btn btn-info m-2'>Create</button>
                 <button className='btn btn-warning m-2'>Edit / Delete</button>
                 <button className='btn btn-secondary m-2'>Display</button>
             </div>
-            <div class="container mt-5">
-                <form>
-                    <div class="card shadow-lg p-4 rounded">
-                        <div class="card-header d-flex justify-content-between align-items-center mb-5">
-                            <h2 class="text-dark">Account Management</h2>
-                        </div>
+            <Formik initialvalue={initialvalue} onSubmit={StockPostApi} validationSchema={validationSchema}>
+                {({ errors }) => (
 
-                        <div class="card-body">
-                            <div class="row">
-                                {/* <!-- Personal Info Section --> */}
-                                <div class="col-md-6">
-                                    <h4>Personal Info</h4>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Name:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Name" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Alias:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Alias" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Adhar No:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Telephone" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">State:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter State" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Country:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Country" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">City:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter City" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Address:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Address" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Phone:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Phone" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Email:</label>
-                                        <div class="col-md-8">
-                                            <input type="email" class="form-control" placeholder="Enter Email" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Telephone:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Telephone" />
-                                        </div>
-                                    </div>
-
+                    <div className="container mt-5">
+                        <Form>
+                            <div className="card shadow-lg  rounded">
+                                <div className="card-header d-flex justify-content-between align-items-center ">
+                                    <h2 className="text-dark">Account Management</h2>
                                 </div>
 
-                                {/* <!-- Firm Info Section --> */}
-                                <div class="col-md-6">
-                                    <h4>Firm Info</h4>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Company Name:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Company Name" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Company Category:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter Category" />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Currency Type</label>
-                                        <div class="col-md-8">
-                                            <select class="form-control">
-                                                <option value="">Select Currency</option>
-                                                <option value="AED">AED - United Arab Emirates Dirham</option>
-                                                <option value="AFN">AFN - Afghan Afghani</option>
-                                                <option value="ALL">ALL - Albanian Lek</option>
-                                                <option value="AMD">AMD - Armenian Dram</option>
-                                                <option value="ANG">ANG - Netherlands Antillean Guilder</option>
-                                                <option value="AOA">AOA - Angolan Kwanza</option>
-                                                <option value="ARS">ARS - Argentine Peso</option>
-                                                <option value="AUD">AUD - Australian Dollar</option>
-                                                <option value="AWG">AWG - Aruban Florin</option>
-                                                <option value="AZN">AZN - Azerbaijani Manat</option>
-                                                <option value="BAM">BAM - Bosnia-Herzegovina Convertible Mark</option>
-                                                <option value="BBD">BBD - Barbadian Dollar</option>
-                                                <option value="BDT">BDT - Bangladeshi Taka</option>
-                                                <option value="BGN">BGN - Bulgarian Lev</option>
-                                                <option value="BHD">BHD - Bahraini Dinar</option>
-                                                <option value="BIF">BIF - Burundian Franc</option>
-                                                <option value="BMD">BMD - Bermudian Dollar</option>
-                                                <option value="BND">BND - Brunei Dollar</option>
-                                                <option value="BOB">BOB - Bolivian Boliviano</option>
-                                                <option value="BRL">BRL - Brazilian Real</option>
-                                                <option value="BSD">BSD - Bahamian Dollar</option>
-                                                <option value="BTN">BTN - Bhutanese Ngultrum</option>
-                                                <option value="BWP">BWP - Botswanan Pula</option>
-                                                <option value="BYN">BYN - Belarusian Ruble</option>
-                                                <option value="BZD">BZD - Belize Dollar</option>
-                                                <option value="CAD">CAD - Canadian Dollar</option>
-                                                <option value="CDF">CDF - Congolese Franc</option>
-                                                <option value="CHF">CHF - Swiss Franc</option>
-                                                <option value="CLP">CLP - Chilean Peso</option>
-                                                <option value="CNY">CNY - Chinese Yuan</option>
-                                                <option value="COP">COP - Colombian Peso</option>
-                                                <option value="CRC">CRC - Costa Rican Colón</option>
-                                                <option value="CUP">CUP - Cuban Peso</option>
-                                                <option value="CVE">CVE - Cape Verdean Escudo</option>
-                                                <option value="CZK">CZK - Czech Republic Koruna</option>
-                                                <option value="DJF">DJF - Djiboutian Franc</option>
-                                                <option value="DKK">DKK - Danish Krone</option>
-                                                <option value="DOP">DOP - Dominican Peso</option>
-                                                <option value="DZD">DZD - Algerian Dinar</option>
-                                                <option value="EGP">EGP - Egyptian Pound</option>
-                                                <option value="ERN">ERN - Eritrean Nakfa</option>
-                                                <option value="ETB">ETB - Ethiopian Birr</option>
-                                                <option value="EUR">EUR - Euro</option>
-                                                <option value="FJD">FJD - Fijian Dollar</option>
-                                                <option value="FKP">FKP - Falkland Islands Pound</option>
-                                                <option value="FOK">FOK - Faroese Króna</option>
-                                                <option value="GBP">GBP - British Pound Sterling</option>
-                                                <option value="GEL">GEL - Georgian Lari</option>
-                                                <option value="GHS">GHS - Ghanaian Cedi</option>
-                                                <option value="GIP">GIP - Gibraltar Pound</option>
-                                                <option value="GMD">GMD - Gambian Dalasi</option>
-                                                <option value="GNF">GNF - Guinean Franc</option>
-                                                <option value="GTQ">GTQ - Guatemalan Quetzal</option>
-                                                <option value="GYD">GYD - Guyanaese Dollar</option>
-                                                <option value="HKD">HKD - Hong Kong Dollar</option>
-                                                <option value="HNL">HNL - Honduran Lempira</option>
-                                                <option value="HRK">HRK - Croatian Kuna</option>
-                                                <option value="HTG">HTG - Haitian Gourde</option>
-                                                <option value="HUF">HUF - Hungarian Forint</option>
-                                                <option value="IDR">IDR - Indonesian Rupiah</option>
-                                                <option value="ILS">ILS - Israeli New Sheqel</option>
-                                                <option value="INR">INR - Indian Rupee</option>
-                                                <option value="IQD">IQD - Iraqi Dinar</option>
-                                                <option value="IRR">IRR - Iranian Rial</option>
-                                                <option value="ISK">ISK - Icelandic Króna</option>
-                                                <option value="JMD">JMD - Jamaican Dollar</option>
-                                                <option value="JOD">JOD - Jordanian Dinar</option>
-                                                <option value="JPY">JPY - Japanese Yen</option>
-                                                <option value="KES">KES - Kenyan Shilling</option>
-                                                <option value="KGS">KGS - Kyrgystani Som</option>
-                                                <option value="KHR">KHR - Cambodian Riel</option>
-                                                <option value="KMF">KMF - Comorian Franc</option>
-                                                <option value="KRW">KRW - South Korean Won</option>
-                                                <option value="KWD">KWD - Kuwaiti Dinar</option>
-                                                <option value="KYD">KYD - Cayman Islands Dollar</option>
-                                                <option value="KZT">KZT - Kazakhstani Tenge</option>
-                                                <option value="LAK">LAK - Laotian Kip</option>
-                                                <option value="LBP">LBP - Lebanese Pound</option>
-                                                <option value="LKR">LKR - Sri Lankan Rupee</option>
-                                                <option value="LRD">LRD - Liberian Dollar</option>
-                                                <option value="LSL">LSL - Lesotho Loti</option>
-                                                <option value="LYD">LYD - Libyan Dinar</option>
-                                                <option value="MAD">MAD - Moroccan Dirham</option>
-                                                <option value="MDL">MDL - Moldovan Leu</option>
-                                                <option value="MGA">MGA - Malagasy Ariary</option>
-                                                <option value="MKD">MKD - Macedonian Denar</option>
-                                                <option value="MMK">MMK - Myanmar Kyat</option>
-                                                <option value="MNT">MNT - Mongolian Tugrik</option>
-                                                <option value="MOP">MOP - Macanese Pataca</option>
-                                                <option value="MRU">MRU - Mauritanian Ouguiya</option>
-                                                <option value="MUR">MUR - Mauritian Rupee</option>
-                                                <option value="MVR">MVR - Maldivian Rufiyaa</option>
-                                                <option value="MWK">MWK - Malawian Kwacha</option>
-                                                <option value="MXN">MXN - Mexican Peso</option>
-                                                <option value="MYR">MYR - Malaysian Ringgit</option>
-                                                <option value="MZN">MZN - Mozambican Metical</option>
-                                                <option value="NAD">NAD - Namibian Dollar</option>
-                                                <option value="NGN">NGN - Nigerian Naira</option>
-                                                <option value="NIO">NIO - Nicaraguan Córdoba</option>
-                                                <option value="NOK">NOK - Norwegian Krone</option>
-                                                <option value="NPR">NPR - Nepalese Rupee</option>
-                                                <option value="NZD">NZD - New Zealand Dollar</option>
-                                                <option value="OMR">OMR - Omani Rial</option>
-                                                <option value="PAB">PAB - Panamanian Balboa</option>
-                                                <option value="PEN">PEN - Peruvian Sol</option>
-                                                <option value="PGK">PGK - Papua New Guinean Kina</option>
-                                                <option value="PHP">PHP - Philippine Peso</option>
-                                                <option value="PKR">PKR - Pakistani Rupee</option>
-                                                <option value="PLN">PLN - Polish Zloty</option>
-                                                <option value="PYG">PYG - Paraguayan Guarani</option>
-                                                <option value="QAR">QAR - Qatari Rial</option>
-                                                <option value="RON">RON - Romanian Leu</option>
-                                                <option value="RSD">RSD - Serbian Dinar</option>
-                                                <option value="RUB">RUB - Russian Ruble</option>
-                                                <option value="RWF">RWF - Rwandan Franc</option>
-                                                <option value="SAR">SAR - Saudi Riyal</option>
-                                                <option value="SBD">SBD - Solomon Islands Dollar</option>
-                                                <option value="SCR">SCR - Seychellois Rupee</option>
-                                                <option value="SDG">SDG - Sudanese Pound</option>
-                                                <option value="SEK">SEK - Swedish Krona</option>
-                                                <option value="SGD">SGD - Singapore Dollar</option>
-                                                <option value="SHP">SHP - Saint Helena Pound</option>
-                                                <option value="SLL">SLL - Sierra Leonean Leone</option>
-                                                <option value="SOS">SOS - Somali Shilling</option>
-                                                <option value="SRD">SRD - Surinamese Dollar</option>
-                                                <option value="SSP">SSP - South Sudanese Pound</option>
-                                                <option value="STN">STN - São Tomé and Príncipe Dobra</option>
-                                                <option value="SYP">SYP - Syrian Pound</option>
-                                                <option value="SZL">SZL - Swazi Lilangeni</option>
-                                                <option value="THB">THB - Thai Baht</option>
-                                                <option value="TJS">TJS - Tajikistani Somoni</option>
-                                                <option value="TMT">TMT - Turkmenistani Manat</option>
-                                                <option value="TND">TND - Tunisian Dinar</option>
-                                                <option value="TOP">TOP - Tongan Paʻanga</option>
-                                                <option value="TRY">TRY - Turkish Lira</option>
-                                                <option value="TTD">TTD - Trinidad and Tobago Dollar</option>
-                                                <option value="TVD">TVD - Tuvaluan Dollar</option>
-                                                <option value="TWD">TWD - New Taiwan Dollar</option>
-                                                <option value="TZS">TZS - Tanzanian Shilling</option>
-                                                <option value="UAH">UAH - Ukrainian Hryvnia</option>
-                                                <option value="UGX">UGX - Ugandan Shilling</option>
-                                                <option value="USD">USD - United States Dollar</option>
-                                                <option value="UYU">UYU - Uruguayan Peso</option>
-                                                <option value="UZS">UZS - Uzbekistani Som</option>
-                                                <option value="VES">VES - Venezuelan Bolívar Soberano</option>
-                                                <option value="VND">VND - Vietnamese Dong</option>
-                                                <option value="VUV">VUV - Vanuatu Vatu</option>
-                                                <option value="WST">WST - Samoan Tala</option>
-                                                <option value="XAF">XAF - Central African CFA Franc</option>
-                                                <option value="XCD">XCD - East Caribbean Dollar</option>
-                                                <option value="XOF">XOF - West African CFA Franc</option>
-                                                <option value="XPF">XPF - CFP Franc</option>
-                                                <option value="YER">YER - Yemeni Rial</option>
-                                                <option value="ZAR">ZAR - South African Rand</option>
-                                                <option value="ZMW">ZMW - Zambian Kwacha</option>
-                                                <option value="ZWL">ZWL - Zimbabwean Dollar</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">GST Type</label>
-                                        <div class="col-md-8">
-                                            <select class="form-control">
-                                                <option value="">Select GST Type</option>
-                                                <option value="regular">Regular</option>
-                                                <option value="composition">Composition</option>
-                                                <option value="none">None</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">GST No:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter GSTN" />
-                                        </div>
-                                    </div>
+                                <div className="card-body text-capitalize">
+                                    <div className="row">
+                                        {/* <!-- Personal Info Section --> */}
+                                        <div class="accordion" id="accordionExample">
+                                            {/* <!-- Personal Info Section --/> */}
+                                            <div class="accordion-item border">
+                                                <h2 class="accordion-header " id="headingPersonalInfo">
+                                                    <button class="accordion-button fs-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePersonalInfo" aria-expanded="true" aria-controls="collapsePersonalInfo">
+                                                        Personal Info
+                                                    </button>
+                                                </h2>
+                                                <div id="collapsePersonalInfo " class="accordion-collapse collapse border  m-4 rounded show" aria-labelledby="headingPersonalInfo" data-bs-parent="#accordionExample">
+                                                    <div class="accordion-body">
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Company Name:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Name" />
+                                                            </div>
 
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">GST %:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter GST %" />
-                                        </div>
-                                    </div>
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Alias:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Alias" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">State:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter State" />
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Country:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Country" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">City:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter City" />
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Address:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Address" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Phone No:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Phone" />
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Email:</label>
+                                                                <input type="email" class="form-control" placeholder="Enter Email" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Alternate Phone No:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Telephone" />
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Website:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Website" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">PAN:</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" placeholder="Enter PAN" />
+
+
+
                                         </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <label class="col-md-4 col-form-label">Buussions Type:</label>
-                                        <div class="col-md-8">
-                                            <select class="form-control">
-                                                <option value="">Select</option>
-                                                <option value="Buyer">Buyer</option>
-                                                <option value="Seller">Seller</option>
-                                                <option value="Seller">Both</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="row mb-3">
-                                            <label className="col-md-4 col-form-label">Bank Account:</label>
-                                            <div className="col-md-8">
-                                                <input type="text" className="form-control" placeholder="Enter Bank Account" />
+
+
+                                        {/* <!-- Firm Info Section --> */}
+                                        <div className="accordion" id="accordionExample">
+                                            {/* Firm Info Section */}
+                                            <div className="accordion-item border mt-3">
+                                                <h2 className="accordion-header " id="headingOne">
+                                                    <button className="accordion-button collapsed fs-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                                        Firm Info
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseOne" className="accordion-collapse collapse border rounded m-3" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                                    <div className="accordion-body">
+                                                        {/* Firm Info Fields */}
+                                                        <div className="row mb-3">
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Company Category:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter Category" />
+                                                            </div>
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Currency Type:</label>
+                                                                <select className="form-control">
+                                                                    <option value="">Select Currency</option>
+                                                                    <option value="AED">AED - United Arab Emirates Dirham</option>
+                                                                    <option value="AFN">AFN - Afghan Afghani</option>
+                                                                    <option value="ALL">ALL - Albanian Lek</option>
+                                                                    {/* Add other options as needed */}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div className="row mb-3">
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Adhar No:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter Telephone" />
+                                                            </div>
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">GST Type:</label>
+                                                                <select className="form-control">
+                                                                    <option value="">Select GST Type</option>
+                                                                    <option value="regular">Regular</option>
+                                                                    <option value="composition">Composition</option>
+                                                                    <option value="none">None</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div className="row mb-3">
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">GST No:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter GSTN" />
+                                                            </div>
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">PAN:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter PAN" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/* <!-- Contact Person Info Section --> */}
+                                            <div class="accordion-item border mt-3">
+                                                <h2 class="accordion-header  " id="headingContactPersonInfo">
+                                                    <button class="accordion-button collapsed fs-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContactPersonInfo" aria-expanded="false" aria-controls="collapseContactPersonInfo">
+                                                        Contact Person Info
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseContactPersonInfo" class="accordion-collapse collapse border rounded m-3" aria-labelledby="headingContactPersonInfo" data-bs-parent="#accordionExample">
+                                                    <div class="accordion-body">
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Contact Person Name:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Name" />
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Designation:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Designation" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Phone:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Phone" />
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="col-form-label">Email:</label>
+                                                                <input type="text" class="form-control" placeholder="Enter Email" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Bank Details Section */}
+                                            <div className="accordion-item border mt-3">
+                                                <h2 className="accordion-header " id="headingTwo">
+                                                    <button className="accordion-button collapsed fs-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                                        Bank Details
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseTwo" className="accordion-collapse collapse border rounded m-3" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                                                    <div className="accordion-body">
+                                                        {/* Bank Details Fields */}
+                                                        <div className="row mb-3">
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Bank Account No:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter Bank Account" />
+                                                            </div>
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">IFSC No:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter IFSC No" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="row mb-3">
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Bank Holder Name:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter Bank Holder Name" />
+                                                            </div>
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Bank Name:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter Bank Name" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="row mb-3">
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Branch Name:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter Branch Name" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Business Details Section */}
+                                            <div className="accordion-item  border mt-3">
+                                                <h2 className="accordion-header" id="headingThree">
+                                                    <button className="accordion-button collapsed fs-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                                        Business Details
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseThree" className="accordion-collapse collapse border rounded m-3" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+                                                    <div className="accordion-body">
+                                                        {/* Business Details Fields */}
+                                                        <div className="row mb-3">
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Registration Number:</label>
+                                                                <input type="text" className="form-control" placeholder="Enter Registration Number" />
+                                                            </div>
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Incorporation Date:</label>
+                                                                <input type="date" className="form-control" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="row mb-3">
+                                                            <div className="col-md-6">
+                                                                <label className="col-form-label">Select Industry Type:</label>
+                                                                <select className="form-control">
+                                                                    <option value="">Select Industry Type</option>
+                                                                    <option value="Agriculture & Farming">Agriculture & Farming</option>
+                                                                    <option value="Fishing & Aquaculture">Fishing & Aquaculture</option>
+                                                                    <option value="Forestry & Logging">Forestry & Logging</option>
+                                                                    {/* Add other options as needed */}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="row mb-3">
-                                            <label className="col-md-4 col-form-label">IFSC No:</label>
-                                            <div className="col-md-8">
-                                                <input type="text" className="form-control" placeholder="Enter IFSC No" />
-                                            </div>
-                                        </div>
-                                        <div className="row mb-3">
-                                            <label className="col-md-4 col-form-label">Bank Holder Name:</label>
-                                            <div className="col-md-8">
-                                                <input type="text" className="form-control" placeholder="Enter Bank Holder Name" />
-                                            </div>
-                                        </div>
-                                        <div className="row mb-3">
-                                            <label className="col-md-4 col-form-label">Bank Name:</label>
-                                            <div className="col-md-8">
-                                                <input type="text" className="form-control" placeholder="Enter Bank Name" />
-                                            </div>
-                                        </div>
-                                        <div />
-                                    </div>
-                                    {/* <div>
+
+
+                                        {/* <div>
                                         <div>
                                            
                                             <div className="row mb-3">
@@ -423,18 +484,21 @@ function Stock() {
                                         </div>
                                     </div> */}
 
-                                    {/* <!-- Buttons --> */}
+                                        {/* <!-- Buttons --> */}
+                                    </div>
+                                </div>
+                                <div className="mt-4 mb-4 text-center">
+                                    <button type="button" className="btn btn-secondary me-2">Cancel</button>
+                                    <button type="submit" className="btn btn-primary">Save</button>
                                 </div>
                             </div>
-                        </div>
-                        <div class="mt-4 text-center">
-                            <button type="button" class="btn btn-secondary me-2">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </div>
+                        </Form >
                     </div>
-                </form>
+                )}
 
-            </div>
+            </Formik>
+
+            {/* </div > */}
 
         </>
     )

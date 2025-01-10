@@ -127,7 +127,7 @@ function EditProfile() {
 
     const [initialValues, setinitialValues] = useState()
     const [isInput, setisInput] = useState()
-    const { instituteID } = useContext(MainContext)
+    const { userId } = useContext(MainContext)
     const Navigate = useNavigate()
     const location = useLocation();
     const { institute } = location.state || {};
@@ -241,7 +241,7 @@ function EditProfile() {
             },
         };
         console.log(data);
-        EditApi(`/api/institute/update/${instituteID}`, data, "User updated Successfully")
+        EditApi(`/api/institute/update/${userId}`, data, "User updated Successfully")
         Navigate("/instituteprofile")
     }
 

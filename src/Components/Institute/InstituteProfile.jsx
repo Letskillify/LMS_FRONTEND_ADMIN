@@ -3,7 +3,7 @@ import { MainContext } from '../Controller/MainProvider';
 import { useNavigate, Link } from 'react-router-dom'; // Import Link for navigation
 
 const InstituteProfile = () => {
-    const { institute } = useContext(MainContext);
+    const {institute } = useContext(MainContext);
     const [loading, setLoading] = useState(true);
     const Navigate = useNavigate(); // Hook for navigation
 
