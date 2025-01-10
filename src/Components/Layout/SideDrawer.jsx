@@ -99,7 +99,7 @@ function SideDrawer() {
 
     return (
         <>
-            <aside id="layout-menu" className=" layout-menu menu-vertical menu bg-menu-theme" style={{ overflowY: 'scroll', height: '100vh', width: '18%', scrollbarWidth: 'thin' }}>
+            <aside id="layout-menu" className=" layout-menu menu-vertical menu bg-menu-theme" style={{ overflowY: 'scroll', height: '100vh', width: 'auto', scrollbarWidth: 'thin' }}>
                 <div className="app-brand demo ">
                     <Link to={'/'} className="app-brand-link">
                         <span className="app-brand-logo demo">

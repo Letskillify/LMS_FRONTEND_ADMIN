@@ -2,83 +2,93 @@ import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import CryptoJS from "crypto-js";
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const [Message, setMessage] = useState();
-  const [ResData, setResData] = useState();
+  const [Success, setSuccess] = useState()
+  const SECRET_KEY = "brigatech&letskillify";
 
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email format").required("Email is required"),
     password: Yup.string()
       .min(6, "Password must be at least 6 characters")
       .required("Password is required"),
-    userType: Yup.string().required("Please select a user type"), // Validation for userType
+    designation: Yup.string().required("Please select a user type"), 
   });
 
-  const handleSubmit = (values) => {
-    fetch("/login", values, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.message !== "Login successful.") {
-          setMessage(data.message);
-        } else {
-          setMessage("Login successful.");
-          sessionStorage.setItem("token", data.savedLoggedDetails.token);
-          sessionStorage.setItem("instituteID", data.savedLoggedDetails.instituteID);
-          navigate("/");
-          window.location.reload();
-        }
-      })
-      // .catch((error) => console.error("Error:", error));
+  const handleSubmit = async (values) => {
+
+    try {
+      const res = await axios.post("http://localhost:5500/login", values);
+
+      if (res.status === 200) {
+        const { token, userId, designation, message, success } = res.data;
+
+        // Ensure SECRET_KEY is valid
+        console.log("SECRET_KEY:", SECRET_KEY);
+
+        // Encrypt and store data in sessionStorage
+        sessionStorage.setItem(
+          "token",
+          CryptoJS.AES.encrypt(token || "", SECRET_KEY).toString()
+        );
+        sessionStorage.setItem(
+          "userId",
+          CryptoJS.AES.encrypt(userId || "", SECRET_KEY).toString()
+        );
+        sessionStorage.setItem(
+          "designation",
+          CryptoJS.AES.encrypt(designation || "", SECRET_KEY).toString()
+        );
+        sessionStorage.setItem(
+          "Islogin",
+          CryptoJS.AES.encrypt(String(success) || "", SECRET_KEY).toString()
+        );
+
+        setMessage(message);
+        setSuccess(success)
+        window.location.reload();
+        navigate("/", {
+          state: { userId, designation, token },
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage(err?.response?.data?.message || "An error occurred");
+    }
   };
+
 
   return (
     <section className="h-100" style={{ backgroundColor: "#9A616D" }}>
-      <div className="container py-5 h-100">
-        <div className="row d-flex justify-content-center align-items-center h-100">
+      <div className="container py-5">
+        <div className="row d-flex justify-content-center align-items-center">
           <div className="col col-xl-10">
             <div className="card" style={{ borderRadius: "1rem" }}>
-              <div className="row g-0">
-                <div className="col-md-6 col-lg-5 d-none d-md-block">
+              <div className="row d-flex justify-content-center align-items-center g-0">
+                <div className="col-md-6 col-lg-5 d-md-block ">
                   <img
-                    src="https://m.economictimes.com/thumb/msid-88607879,width-1200,height-1400,resizemode-4,imgsize-55812/education.jpg"
+                    src="https://img.freepik.com/free-vector/mobile-login-concept-illustration_114360-83.jpg?t=st=1736500280~exp=1736503880~hmac=27583bc02cd98c8530105f634b1f720a0bc13296274b73692df18f339793d9b2&w=740"
                     alt="login form"
                     className="img-fluid"
-                    style={{ borderRadius: "1rem 0 0 1rem" }}
+                    style={{ borderRadius: "1rem 0 0 1rem", objectFit: "cover" }}
                   />
                 </div>
                 <div className="col-md-6 col-lg-7 d-flex align-items-center">
                   <div className="card-body p-4 p-lg-5 text-black">
                     <Formik
-                      initialValues={{ email: "", password: "", userType: "" }}
+                      initialValues={{ email: "", password: "", designation: "" }}
                       validationSchema={validationSchema}
                       onSubmit={handleSubmit}
                     >
                       {({ isSubmitting, status }) => (
                         <Form>
-                          <div className="d-flex align-items-center mb-3 pb-1">
-                            <i
-                              className="fas fa-cubes fa-2x me-3"
-                              style={{ color: "#ff6219" }}
-                            ></i>
-                            <span className="h1 fw-bold mb-0">Logo</span>
-                          </div>
-
-                          <h5
-                            className="fw-normal mb-3 pb-3"
-                            style={{ letterSpacing: "1px" }}
-                          >
-                            Sign into your account
-                          </h5>
-
-                          <div className="form-outline mb-4">
+                          <h4 className="fw-bold mb-4 text-center">Sign into your account</h4>
+                          <hr />
+                          <div className="form-outline mb-4 mt-5">
                             <Field
                               type="email"
                               name="email"
@@ -95,7 +105,7 @@ const LoginForm = () => {
                           <div className="form-outline mb-4">
                             <Field
                               as="select"
-                              name="userType"
+                              name="designation"
                               className="form-control form-control-lg"
                             >
                               <option value="" className="text-muted" disabled>
@@ -106,7 +116,7 @@ const LoginForm = () => {
                               <option value="Institute">Institute</option>
                             </Field>
                             <ErrorMessage
-                              name="userType"
+                              name="designation"
                               component="h6"
                               className="text-danger ms-2 mt-2"
                             />
@@ -130,7 +140,7 @@ const LoginForm = () => {
 
 
                           <h6
-                            className={`ms-2 ${Message === "Login successful." ? "text-success" : "text-danger"
+                            className={`ms-2 ${Success ? "text-success" : "text-danger"
                               }`}
                           >
                             {Message}

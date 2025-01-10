@@ -195,7 +195,7 @@ const AdmitStudents = () => {
     const Navigate = useNavigate();
 
     // ALL DATA PROVIDER
-    const { instituteID, fetchTrashData, fetchStudentData, studentData, setStudentData, handlePrint, printPDF, exportToExcel, handleExportCSV } = useContext(MainContext)
+    const { userId, fetchTrashData, fetchStudentData, studentData, setStudentData, handlePrint, printPDF, exportToExcel, handleExportCSV } = useContext(MainContext)
 
 
     //set image functionality 
@@ -271,7 +271,7 @@ const AdmitStudents = () => {
     const handlePrevious = () => setStep((prev) => prev - 1);
 
     const initialValues = {
-        instituteId: instituteID,
+        instituteId: userId,
         personalDetails: {
             profilePhoto: null,
             firstName: "",

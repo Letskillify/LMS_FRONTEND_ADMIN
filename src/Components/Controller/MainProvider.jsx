@@ -3,6 +3,7 @@ import { saveAs } from 'file-saver';
 import * as Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import "jspdf-autotable";
+import CryptoJS from "crypto-js";
 import axios from 'axios';
 import { getApi, HitApi, PostApi, DeleteApi, PutApi } from '../Custom Hooks/CustomeHook';
 export const MainContext = createContext();
@@ -10,7 +11,6 @@ export const MainProvider = ({ children }) => {
   const [StudentTrash, setStudentTrash] = useState([])
   const [studentData, setStudentData] = useState([])
   const [institute, setInstitute] = useState([])
-  const instituteID = sessionStorage.getItem("instituteID");
   // const [exams, setExams] = useState()
   useEffect(() => {
     fetchStudentData();
@@ -21,10 +21,6 @@ export const MainProvider = ({ children }) => {
   const fetchStudentData = async () => {
     const data = await getApi("/api/student/get");
     setStudentData(data);
-  };
-  const fetchInstitute = async () => {
-    const data = await getApi(`/api/institute/get/${instituteID}`);
-    setInstitute(data);
   };
 
   const fetchTrashData = async () => {
@@ -139,10 +135,10 @@ export const MainProvider = ({ children }) => {
     const printWindow = window.open('', '', 'height=800,width=1200');
     printWindow.document.write('<html><head><title>Print Students Details</title></head><body>');
     printWindow.document.write('<h1>Students Details</h1>');
-  
+
     studentData?.forEach((studentData, index) => {
       printWindow.document.write(`<h2>Student ${index + 1}</h2>`);
-  
+
       // Personal Details
       printWindow.document.write('<h3>Personal Details</h3>');
       printWindow.document.write(`
@@ -161,7 +157,7 @@ export const MainProvider = ({ children }) => {
           <tr><th>Caste</th><td>${studentData?.personalDetails?.caste || 'Not Provided'}</td></tr>
         </table>
       `);
-  
+
       // Contact Info
       printWindow.document.write('<h3>Contact Information</h3>');
       printWindow.document.write(`
@@ -173,7 +169,7 @@ export const MainProvider = ({ children }) => {
           <tr><th>Address</th><td>${studentData?.contactInfo?.address?.houseNo || 'Not Provided'}, ${studentData?.contactInfo?.address?.streetName || 'Not Provided'}, ${studentData?.contactInfo?.address?.city || 'Not Provided'}, ${studentData?.contactInfo?.address?.state || 'Not Provided'}, ${studentData?.contactInfo?.address?.country || 'Not Provided'}</td></tr>
         </table>
       `);
-  
+
       // Parent Details
       printWindow.document.write('<h3>Parent Details</h3>');
       printWindow.document.write(`
@@ -183,7 +179,7 @@ export const MainProvider = ({ children }) => {
           <tr><th>Guardian Name</th><td>${studentData?.parentDetails?.Guardian?.name || 'Not Provided'}</td></tr>
         </table>
       `);
-  
+
       // Academic Details
       printWindow.document.write('<h3>Academic Details</h3>');
       printWindow.document.write(`
@@ -193,7 +189,7 @@ export const MainProvider = ({ children }) => {
           <tr><th>Percentage</th><td>${studentData?.academicDetails?.previous?.percentage || 'Not Provided'}</td></tr>
         </table>
       `);
-  
+
       // Enrollment Details
       printWindow.document.write('<h3>Enrollment Details</h3>');
       printWindow.document.write(`
@@ -202,7 +198,7 @@ export const MainProvider = ({ children }) => {
           <tr><th>Admission Date</th><td>${studentData?.enrollmentDetails?.admissionDate || 'Not Provided'}</td></tr>
         </table>
       `);
-  
+
       // Documents
       printWindow.document.write('<h3>Documents</h3>');
       printWindow.document.write(`
@@ -211,7 +207,7 @@ export const MainProvider = ({ children }) => {
           <tr><th>Transfer Certificate</th><td>${studentData?.documents?.transferCertificate || 'Not Provided'}</td></tr>
         </table>
       `);
-  
+
       // System Information
       printWindow.document.write('<h3>System Information</h3>');
       printWindow.document.write(`
@@ -223,14 +219,14 @@ export const MainProvider = ({ children }) => {
         </table>
       `);
     });
-  
+
     printWindow.document.write('</body></html>');
     printWindow.document.close();
     printWindow.print();
   };
-  
 
-  
+
+
 
   // edit Student Data
 
@@ -245,8 +241,49 @@ export const MainProvider = ({ children }) => {
     Navigate("/editstudents", { state: { studentId, student } });
   };
 
+
+
+
+  // get Data from sessionStorage
+
+  const SECRET_KEY = "brigatech&letskillify";
+  const decryptValue = (encryptedValue) => {
+    if (!encryptedValue) return null;
+    const bytes = CryptoJS.AES.decrypt(encryptedValue, SECRET_KEY);
+    return bytes.toString(CryptoJS.enc.Utf8); // Convert decrypted bytes back to string
+  };
+
+  const getDecryptedValues = () => {
+    const encryptedToken = sessionStorage.getItem("token");
+    const encryptedUserId = sessionStorage.getItem("userId");
+    const encryptedDesignation = sessionStorage.getItem("designation");
+    const encryptedIslogin = sessionStorage.getItem("Islogin");
+
+    const token = decryptValue(encryptedToken);
+    const userId = decryptValue(encryptedUserId);
+    const designation = decryptValue(encryptedDesignation);
+    const Islogin = decryptValue(encryptedIslogin);
+
+    return { token, userId, designation, Islogin };
+  };
+
+  // Usage
+  const decryptedData = getDecryptedValues();
+  const token = decryptedData.token;
+  const userId = decryptedData.userId;
+  const designation = decryptedData.designation;
+  const Islogin = decryptedData.Islogin;
+
+
+  // Fetch Institute Data
+  const fetchInstitute = async () => {
+    const data = await getApi(`/api/institute/get/${userId}`);
+    setInstitute(data);
+  };
+
+
   return (
-    <MainContext.Provider value={{ instituteID, fetchInstitute, institute, editedData, handleEdit, fetchTrashData, fetchStudentData, StudentTrash, HandleLogOut, studentData, setStudentData, handlePrint,  exportToExcel, handleExportCSV }}>
+    <MainContext.Provider value={{ token, userId, designation, Islogin, fetchInstitute, institute, editedData, handleEdit, fetchTrashData, fetchStudentData, StudentTrash, HandleLogOut, studentData, setStudentData, handlePrint, exportToExcel, handleExportCSV }}>
       {children}
     </MainContext.Provider>
   );
