@@ -476,9 +476,9 @@ function SideDrawer() {
                                 </Link>
                             </li>
                             <li className="menu-item">
-                                <a href="" className="menu-link">
-                                    <div>School classNamees</div>
-                                </a>
+                                <Link to={"/allclasses&subjects"} className="menu-link">
+                                    <div>Classes & Subjects</div>
+                                </Link>
                             </li>
                         </ul>
                     </li>
