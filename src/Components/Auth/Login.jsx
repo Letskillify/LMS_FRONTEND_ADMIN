@@ -24,6 +24,7 @@ function Login() {
                   <label for="email" className="form-label">Email or Username</label>
                   <input type="text"className="form-control" id="email"name="email-username" placeholder="Enter your email or username" autofocus />
                 </div>
+               
                 <div className="mb-3 form-password-toggle">
                   <div className="d-flex justify-content-between">
                     <label className="form-label" for="password">Password</label>

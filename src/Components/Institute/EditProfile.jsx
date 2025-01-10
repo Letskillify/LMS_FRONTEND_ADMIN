@@ -1,14 +1,137 @@
 import { Field, Form, Formik } from 'formik';
 import React, { useContext, useEffect, useState } from 'react'
 import { MainContext } from '../Controller/MainProvider';
+import * as Yup from 'yup';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { EditApi, useImageUploader } from '../Custom Hooks/CustomeHook';
+
+
+
+const validationSchema = Yup.object({
+    name: Yup.string().required("Institute name is required"),
+    contact: Yup.object({
+        email: Yup.string().email("Invalid email format").nullable(),
+        mobile: Yup.string()
+            .matches(/^\d{10}$/, "Mobile number must be 10 digits")
+            .nullable(),
+        whatsapp: Yup.string()
+            .matches(/^\d{10}$/, "WhatsApp number must be 10 digits")
+            .nullable(),
+        landline: Yup.string().nullable(),
+        website: Yup.string().url("Invalid URL").nullable(),
+    }),
+    address: Yup.object({
+        line1: Yup.string().nullable(),
+        line2: Yup.string().nullable(),
+        city: Yup.string().nullable(),
+        state: Yup.string().nullable(),
+        country: Yup.string().nullable(),
+        postalCode: Yup.string()
+            .matches(/^\d{5,6}$/, "Postal code must be 5 or 6 digits")
+            .nullable(),
+        MapLocationUrl: Yup.string().url("Invalid URL").nullable(),
+    }),
+    establishedYear: Yup.number()
+        .min(1900, "Year must be after 1900")
+        .max(new Date().getFullYear(), "Year cannot be in the future")
+        .required("Established year is required"),
+    NoOfCoursesOffered: Yup.number()
+        .min(0, "Cannot be negative")
+        .required("Number of courses offered is required"),
+    NoOfStaffsEnrolled: Yup.number()
+        .min(0, "Cannot be negative")
+        .required("Number of staffs enrolled is required"),
+    NoOfStudentsEnrolled: Yup.number()
+        .min(0, "Cannot be negative")
+        .required("Number of students enrolled is required"),
+    disableStudentAdmission: Yup.boolean(),
+    acceptScholarshipAdmission: Yup.boolean(),
+    libraryFacilities: Yup.boolean(),
+    cafeteriaFacilities: Yup.boolean(),
+    hostelFacilities: Yup.boolean(),
+    accreditation: Yup.string().nullable(),
+    instituteType: Yup.string()
+        .oneOf(
+            ["School", "College", "University", "Coaching Center"],
+            "Invalid institute type"
+        )
+        .required("Institute type is required"),
+    logo: Yup.mixed().nullable(),
+    aboutInstitute: Yup.string().nullable(),
+    affiliationNo: Yup.string().nullable(),
+    affiliationYear: Yup.number()
+        .min(1900, "Year must be after 1900")
+        .max(new Date().getFullYear(), "Year cannot be in the future")
+        .nullable(),
+    affiliationName: Yup.string().nullable(),
+    AuthorizedPerson: Yup.object({
+        name: Yup.string().nullable(),
+        designation: Yup.string().nullable(),
+        IDproof: Yup.string().nullable(),
+        contactInfo: Yup.object({
+            email: Yup.string().email("Invalid email format").nullable(),
+            mobile: Yup.string()
+                .matches(/^\d{10}$/, "Mobile number must be 10 digits")
+                .nullable(),
+            whatsapp: Yup.string()
+                .matches(/^\d{10}$/, "WhatsApp number must be 10 digits")
+                .nullable(),
+            alternateContact: Yup.string().nullable(),
+            address: Yup.object({
+                houseNo: Yup.string().nullable(),
+                streetName: Yup.string().nullable(),
+                city: Yup.string().nullable(),
+                pincode: Yup.string()
+                    .matches(/^\d{5,6}$/, "Pincode must be 5 or 6 digits")
+                    .nullable(),
+                state: Yup.string().nullable(),
+                country: Yup.string().nullable(),
+            }),
+            signature: Yup.mixed().nullable(),
+        }),
+    }),
+    bankDetails: Yup.object({
+        accountHolderName: Yup.string().nullable(),
+        bankName: Yup.string().nullable(),
+        branchName: Yup.string().nullable(),
+        accountNumber: Yup.string()
+            .matches(/^\d+$/, "Account number must be numeric")
+            .nullable(),
+        ifscCode: Yup.string()
+            .matches(/^[A-Z|a-z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format")
+            .nullable(),
+        upiID: Yup.string().nullable(),
+        panNo: Yup.string()
+            .matches(/^[A-Z]{5}[0-9]{4}[A-Z]$/, "Invalid PAN format")
+            .nullable(),
+    }),
+    document: Yup.array().of(
+        Yup.object({
+            ISOcertificate: Yup.mixed().nullable(),
+            GSTcertificate: Yup.mixed().nullable(),
+            AffiliationCertificate: Yup.mixed().nullable(),
+            PANcard: Yup.mixed().nullable(),
+            MSME: Yup.mixed().nullable(),
+            TIN: Yup.mixed().nullable(),
+            NAAC: Yup.mixed().nullable(),
+            UGCapprovedLetter: Yup.mixed().nullable(),
+        })
+    ),
+    loginPassword: Yup.string()
+        .min(8, "Password must be at least 8 characters")
+        .required("Password is required"),
+});
 
 
 function EditProfile() {
 
-    const { institute } = useContext(MainContext);
-    console.log(institute);
     const [initialValues, setinitialValues] = useState()
-
+    const [isInput, setisInput] = useState()
+    const { instituteID } = useContext(MainContext)
+    const Navigate = useNavigate()
+    const location = useLocation();
+    const { institute } = location.state || {};
+    const { uploadedData, handleImageUpload } = useImageUploader();
 
     useEffect(() => {
         if (institute) {
@@ -75,18 +198,16 @@ function EditProfile() {
                     upiID: institute?.upiID || null,
                     panNo: institute?.panNo || null,
                 },
-                document: [
-                    {
-                        ISOcertificate: institute?.ISOcertificate || null,
-                        GSTcertificate: institute?.GSTcertificate || null,
-                        AffiliationCertificate: institute?.AffiliationCertificate || null,
-                        PANcard: institute?.PANcard || null,
-                        MSME: institute?.MSME || null,
-                        TIN: institute?.TIN || null,
-                        NAAC: institute?.NAAC || null,
-                        UGCapprovedLetter: institute?.UGCapprovedLetter || null,
-                    },
-                ],
+                document: {
+                    ISOcertificate: institute?.ISOcertificate || null,
+                    GSTcertificate: institute?.GSTcertificate || null,
+                    AffiliationCertificate: institute?.AffiliationCertificate || null,
+                    PANcard: institute?.PANcard || null,
+                    MSME: institute?.MSME || null,
+                    TIN: institute?.TIN || null,
+                    NAAC: institute?.NAAC || null,
+                    UGCapprovedLetter: institute?.UGCapprovedLetter || null,
+                },
                 loginPassword: institute?.loginPassword || "",
 
             });
@@ -95,13 +216,44 @@ function EditProfile() {
     if (!initialValues) {
         return <div>Loading...</div>; // Or any placeholder if data isn't loaded yet
     }
+
+
+    const HandleSubmit = (values) => {
+        const data = {
+            ...values,
+            logo: uploadedData?.logo,
+            AuthorizedPerson: {
+                ...values.AuthorizedPerson,
+                contactInfo: {
+                    ...values.AuthorizedPerson.contactInfo,
+                    signature: uploadedData?.signature,
+                },
+            },
+            document: {
+                ISOcertificate: uploadedData?.ISOcertificate || values.document.ISOcertificate,
+                GSTcertificate: uploadedData?.GSTcertificate || values.document.GSTcertificate,
+                AffiliationCertificate: uploadedData?.AffiliationCertificate || values.document.AffiliationCertificate,
+                PANcard: uploadedData?.PANcard || values.document.PANcard,
+                MSME: uploadedData?.MSME || values.document.MSME,
+                TIN: uploadedData?.TIN || values.document.TIN,
+                NAAC: uploadedData?.NAAC || values.document.NAAC,
+                UGCapprovedLetter: uploadedData?.UGCapprovedLetter || values.document.UGCapprovedLetter,
+            },
+        };
+        console.log(data);
+        EditApi(`/api/institute/update/${instituteID}`, data, "User updated Successfully")
+        Navigate("/instituteprofile")
+    }
+
+    console.log(institute);
+    
     return (
         <>
             <div className="modal-body">
                 <div className="nav-align-top mb-4">
 
-                    <Formik initialValues={initialValues} enableReinitialize>
-                        {({ values, errors, touched }) => (
+                    <Formik initialValues={initialValues} onSubmit={HandleSubmit}>
+                        {({ values, errors, touched, resetForm }) => (
                             <Form className="border p-4 shadow rounded bg-white">
                                 <h2>Institute registration  </h2>
                                 <div>
@@ -149,6 +301,76 @@ function EditProfile() {
                                             </Field>
                                             < div className="text-danger">{errors?.contact?.website}</div>
                                         </div>
+                                        {/* <div className="col-md-4 mb-3">
+                                            <label>Admission Date <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.admissionDate" type="date" placeholder="Enter admission date" className="form-control" />
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>Institute type<span className='text-danger'>*</span></label>
+                                            <Field as="select" name="enrollmentDetails.instituteType" className="form-control">
+                                                <option value="" label="Select institute type" />
+                                                <option value="Institute" label="Institute" />
+                                                <option value="College" label="College" />
+                                                <option value="School" label="School" />
+                                            </Field>
+
+                                        </div>
+
+                                        <div className="col-md-4 mb-3">
+                                            <label>Course/Class/Degree <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.course" type="text" placeholder="Enter Course/Class/Degree " className="form-control" />
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>School/College/Institute Name <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.instituteName" type="text" placeholder="Enter instituteName" className="form-control" />
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>School/College/Intituite Location <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.instituteLocation" type="text" placeholder="Enter institute Location" className="form-control" />
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>School/College/Institute Medium <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.instituteMedium" as="select" className="form-select">
+                                                <option value="">Select</option>
+                                                <option value="English">English</option>
+                                                <option value="Hindi">Hindi</option>
+                                                <option value="Other">Other</option>
+                                            </Field>
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>School/College/Intituite Session</label>
+                                            <Field name="enrollmentDetails.instituteSession" type="text" placeholder="Enter institute Session" className="form-control" />
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>Board/University Name <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.boardName" type="text" placeholder="Enter institute board Name" className="form-control" />
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>Course Stream <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.courseStream" type="text" placeholder="Enter institute course Stream" className="form-control" />
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>Enrollment Status <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.enrollmentStatus" as="select" className="form-select">
+                                                <option value="">Select</option>
+                                                <option value="Active">Active</option>
+                                                <option value="Deactive">Deactive</option>
+                                            </Field>
+
+                                        </div>
+                                        <div className="col-md-4 mb-3">
+                                            <label>Admission No. <span className='text-danger'>*</span></label>
+                                            <Field name="enrollmentDetails.admissionNO" type="text" placeholder="Enter admission no." className="form-control" />
+
+                                        </div> */}
                                     </div>
                                 </div>
                                 {/* Adress  */}
@@ -199,7 +421,7 @@ function EditProfile() {
                                         </div>
                                         <div className="col-md-4 mb-3">
                                             <label>MapLocationURL <span className='text-danger'>*</span></label>
-                                            <Field name="address.city" type="url" className="form-control" placeholder="Enter Your MapLocationURL">
+                                            <Field name="address.MapLocationUrl" type="url" className="form-control" placeholder="Enter Your MapLocationURL">
 
                                             </Field>
                                             < div className="text-danger">{errors?.address?.city}</div>
@@ -260,32 +482,23 @@ function EditProfile() {
                                         </div>
                                         <div className="col-md-4 mb-3 ">
                                             <label>Logo <span className='text-danger'>*</span></label>
-                                            <Field name="logo" type="file" className="form-control">
-
-                                            </Field>
+                                            {values.logo ? (
+                                                <div>
+                                                    {isInput === "logo" ? (
+                                                        <Field name="logo" type="file" onChange={(e) => handleImageUpload(e, "logo")} className="form-control">
+                                                        </Field>
+                                                    ) : (
+                                                        <div>
+                                                            <a href={values.logo} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("logo")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field name="logo" type="file" onChange={(e) => handleImageUpload(e, "logo")} className="form-control">
+                                                </Field>
+                                            )}
                                             < div className="text-danger">{errors?.logo}</div>
-                                        </div>
-                                        <div className="col-md-4 mb-3">
-                                            <label htmlFor="aboutInstitute" className="form-label">
-                                                About Institute <span className="text-danger">*</span>
-                                            </label>
-                                            <Field
-                                                name="comment"
-                                                id="aboutInstitute"
-                                                className="form-control shadow-sm rounded"
-                                                rows="4"
-                                                placeholder="Write about the institute here..."
-                                                style={{
-                                                    resize: "none",
-                                                    border: "1px solid #ccc",
-                                                    fontFamily: "Arial, sans-serif",
-                                                    fontSize: "14px",
-                                                    padding: "10px",
-                                                    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-                                                }}
-                                                required
-                                            />
-                                            < div className="text-danger">{errors?.aboutInstitute}</div>
                                         </div>
                                         <div className="col-md-4 mb-3 ">
                                             <label>Affiliation No <span className='text-danger'>*</span></label>
@@ -307,6 +520,33 @@ function EditProfile() {
 
                                             </Field>
                                             < div className="text-danger">{errors?.affiliationName}</div>
+                                        </div>
+                                        <div className="col-md-12 mb-3">
+                                            <label htmlFor="aboutInstitute" className="form-label">
+                                                About Institute <span className="text-danger">*</span>
+                                            </label>
+                                            <Field
+                                                name="aboutInstitute"
+                                                as="textarea"
+                                                id="aboutInstitute"
+                                                className="form-control shadow-sm rounded-3"
+                                                rows="4"
+                                                placeholder="Write about the institute here..."
+                                                style={{
+                                                    resize: "none",
+                                                    border: "1px solid #ccc",
+                                                    fontFamily: "Arial, sans-serif",
+                                                    fontSize: "14px",
+                                                    padding: "10px 15px",
+                                                    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                                                    backgroundColor: "white",
+                                                    borderRadius: "5px",
+                                                }}
+                                                required
+                                            />
+                                            <div className="invalid-feedback">
+                                                {errors?.aboutInstitute}
+                                            </div>
                                         </div>
                                         <div className='mb-3'>
                                             <div className="col-md-4">
@@ -378,108 +618,169 @@ function EditProfile() {
                                 </div>
                                 {/* Authorized person */}
                                 <div>
-                                    <h4 className="mb-4">Authorized Person :-</h4>
+                                    <h4 className="mb-4">Authorized Person:</h4>
                                     <div className="row">
                                         <div className="col-md-4 mb-3">
-                                            <label>Name <span className='text-danger'>*</span></label>
-                                            <Field name="name" type="text" className="form-control" placeholder="Enter Your Name">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.name}</div>
+                                            <label>Name <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.name"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your Name"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.name}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Designation <span className='text-danger'>*</span></label>
-                                            <Field name="designation" type="number" className="form-control" placeholder="Enter Your Designation">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.designation}</div>
+                                            <label>Designation <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.designation"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your Designation"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.designation}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>ID Proof <span className='text-danger'>*</span></label>
-                                            <Field name="IDproof" type="number" className="form-control" placeholder="Enter Your ID proof">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.IDproof}</div>
+                                            <label>ID Proof <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.IDproof"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your ID proof"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.IDproof}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Email <span className='text-danger'>*</span></label>
-                                            <Field name="contactInfo.email" type="email" className="form-control" placeholder="Enter Your email">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.email}</div>
+                                            <label>Email <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.email"
+                                                type="email"
+                                                className="form-control"
+                                                placeholder="Enter Your Email"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.email}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Mobile <span className='text-danger'>*</span></label>
-                                            <Field name="contactInfo.mobile" type="number" className="form-control" placeholder="Enter Your Mobile No.">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.mobile}</div>
+                                            <label>Mobile <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.mobile"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your Mobile No."
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.mobile}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>WhatsApp No.<span className='text-danger'>*</span></label>
-                                            <Field name="contactInfo.whatsapp" type="number" className="form-control" placeholder="Enter Your WhatsApp No.">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.whatsapp}</div>
+                                            <label>WhatsApp No. <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.whatsapp"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your WhatsApp No."
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.whatsapp}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Alternate Contact<span className='text-danger'>*</span></label>
-                                            <Field name="contactInfo.alternateContact" type="number" className="form-control" placeholder="Enter Your Alternate Contact No.">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.alternateContact}</div>
+                                            <label>Alternate Contact <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.alternateContact"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your Alternate Contact No."
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.alternateContact}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>House No.<span className='text-danger'>*</span></label>
-                                            <Field name="address.houseNo" type="text" className="form-control" placeholder="Enter Your House No.">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.houseNo}</div>
+                                            <label>House No. <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.address.houseNo"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your House No."
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.address?.houseNo}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Street Name<span className='text-danger'>*</span></label>
-                                            <Field name="address.streetName" type="text" className="form-control" placeholder="Enter Your Street Name">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.streetName}</div>
+                                            <label>Street Name <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.address.streetName"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your Street Name"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.address?.streetName}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>City<span className='text-danger'>*</span></label>
-                                            <Field name="address.city" type="text" className="form-control" placeholder="Enter Your city">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.city}</div>
+                                            <label>City <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.address.city"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your City"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.address?.city}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Pin code<span className='text-danger'>*</span></label>
-                                            <Field name="address.pincode" type="text" className="form-control" placeholder="Enter Your Pin code">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.pincode}</div>
+                                            <label>Pin Code <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.address.pincode"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your Pin Code"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.address?.pincode}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>state<span className='text-danger'>*</span></label>
-                                            <Field name="address.state" type="text" className="form-control" placeholder="Enter Your State">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.state}</div>
+                                            <label>State <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.address.state"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your State"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.address?.state}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Country<span className='text-danger'>*</span></label>
-                                            <Field name="address.country" type="text" className="form-control" placeholder="Enter Your Country">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.contactInfo?.country}</div>
+                                            <label>Country <span className="text-danger">*</span></label>
+                                            <Field
+                                                name="AuthorizedPerson.contactInfo.address.country"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Enter Your Country"
+                                            />
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.address?.country}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Signature<span className='text-danger'>*</span></label>
-                                            <Field name="signature" type="file" className="form-control" placeholder="Upload Your Signature">
-
-                                            </Field>
-                                            < div className="text-danger">{errors?.signature}</div>
+                                            <label>Signature <span className="text-danger">*</span></label>
+                                            {values.AuthorizedPerson.contactInfo.signature ? (
+                                                <div>
+                                                    {isInput === "signature" ? (
+                                                        <div>
+                                                            <a href={values.AuthorizedPerson.contactInfo.signature} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("signature")}>Edit</button>
+                                                        </div>
+                                                    ) : (
+                                                        <Field
+                                                            name="AuthorizedPerson.contactInfo.signature"
+                                                            type="file"
+                                                            className="form-control"
+                                                            onChange={(e) => handleImageUpload(e, "signature")}
+                                                        />
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="AuthorizedPerson.contactInfo.signature"
+                                                    type="file"
+                                                    className="form-control"
+                                                    onChange={(e) => handleImageUpload(e, "signature")}
+                                                />
+                                            )}
+                                            <div className="text-danger">{errors?.AuthorizedPerson?.contactInfo?.signature}</div>
                                         </div>
                                     </div>
                                 </div>
+
                                 {/* Bank Details */}
                                 <div>
                                     <h4 className="mb-4">Bank Details :-</h4>
@@ -548,67 +849,250 @@ function EditProfile() {
                                 </div>
                                 {/* Document */}
                                 <div>
-                                    <h4 className="mb-4">Document :-</h4>
+                                    <h4 className="mb-4">Document:</h4>
                                     <div className="row">
                                         <div className="col-md-4 mb-3">
-                                            <label>ISO Certificate <span className='text-danger'>*</span></label>
-                                            <Field name="document.ISOcertificate" type="text" className="form-control" placeholder="Enter ISO Certificate">
-
-                                            </Field>
+                                            <label>ISO Certificate <span className="text-danger">*</span></label>
+                                            {institute?.document?.ISOcertificate ? (
+                                                <div>
+                                                    {isInput === "ISOcertificate" ? (
+                                                        <Field
+                                                            name="document.ISOcertificate"
+                                                            type="file"
+                                                            className="form-control"
+                                                            placeholder="Enter ISO Certificate"
+                                                            onChange={(e) => handleImageUpload(e, "ISOcertificate")}
+                                                        />) : (
+                                                        <div>
+                                                            <a href={institute?.document?.ISOcertificateUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("ISOcertificate")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="document.ISOcertificate"
+                                                    type="file"
+                                                    className="form-control"
+                                                    placeholder="Enter ISO Certificate"
+                                                    onChange={(e) => handleImageUpload(e, "ISOcertificate")}
+                                                />
+                                            )}
                                             <div className="text-danger">{errors?.document?.ISOcertificate}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>GST Certificate <span className='text-danger'>*</span></label>
-                                            <Field name="document.GSTcertificate" type="text" className="form-control" placeholder="Enter GST Certificate">
-
-                                            </Field>
+                                            <label>GST Certificate <span className="text-danger">*</span></label>
+                                            {institute?.document?.GSTcertificate ? (
+                                                <div>
+                                                    {isInput === "GSTcertificate" ? (
+                                                        <Field
+                                                            name="document.GSTcertificate"
+                                                            type="file"
+                                                            className="form-control"
+                                                            placeholder="Enter GST Certificate"
+                                                            onChange={(e) => handleImageUpload(e, "GSTcertificate")}
+                                                        />
+                                                    ) : (
+                                                        <div>
+                                                            <a href={institute?.document?.GSTcertificate} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("GSTcertificate")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="document.GSTcertificate"
+                                                    type="file"
+                                                    className="form-control"
+                                                    placeholder="Enter GST Certificate"
+                                                    onChange={(e) => handleImageUpload(e, "GSTcertificate")}
+                                                />
+                                            )}
                                             <div className="text-danger">{errors?.document?.GSTcertificate}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>Affiliation Certificate <span className='text-danger'>*</span></label>
-                                            <Field name="document.AffiliationCertificate" type="text" className="form-control" placeholder="Enter Affiliation Certificate">
-
-                                            </Field>
+                                            <label>Affiliation Certificate <span className="text-danger">*</span></label>
+                                            {institute?.document?.AffiliationCertificate ? (
+                                                <div>
+                                                    {isInput === "AffiliationCertificate" ? (
+                                                        <Field
+                                                            name="document.AffiliationCertificate"
+                                                            type="file"
+                                                            className="form-control"
+                                                            placeholder="Enter Affiliation Certificate"
+                                                            onChange={(e) => handleImageUpload(e, "AffiliationCertificate")}
+                                                        />
+                                                    ) : (
+                                                        <div>
+                                                            <a href={institute?.document?.AffiliationCertificate} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("AffiliationCertificate")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="document.AffiliationCertificate"
+                                                    type="file"
+                                                    className="form-control"
+                                                    placeholder="Enter Affiliation Certificate"
+                                                    onChange={(e) => handleImageUpload(e, "AffiliationCertificate")}
+                                                />
+                                            )}
                                             <div className="text-danger">{errors?.document?.AffiliationCertificate}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>PAN Card <span className='text-danger'>*</span></label>
-                                            <Field name="document.PANcard" type="text" className="form-control" placeholder="Enter PAN Card">
-
-                                            </Field>
+                                            <label>PAN Card <span className="text-danger">*</span></label>
+                                            {institute?.document?.PANcard ? (
+                                                <div>
+                                                    {isInput === "PANcard" ? (
+                                                        <Field
+                                                            name="document.PANcard"
+                                                            type="file"
+                                                            className="form-control"
+                                                            placeholder="Enter PAN Card"
+                                                            onChange={(e) => handleImageUpload(e, "PANcard")}
+                                                        />
+                                                    ) : (
+                                                        <div>
+                                                            <a href={institute?.document?.PANcard} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("PANcard")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="document.PANcard"
+                                                    type="file"
+                                                    className="form-control"
+                                                    placeholder="Enter PAN Card"
+                                                    onChange={(e) => handleImageUpload(e, "PANcard")}
+                                                />
+                                            )}
                                             <div className="text-danger">{errors?.document?.PANcard}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>MSME <span className='text-danger'>*</span></label>
-                                            <Field name="document.MSME" type="text" className="form-control" placeholder="Enter MSME">
-
-                                            </Field>
+                                            <label>MSME <span className="text-danger">*</span></label>
+                                            {institute?.document?.MSME ? (
+                                                <div>
+                                                    {isInput === "MSME" ? (
+                                                        <Field
+                                                            name="document.MSME"
+                                                            type="file"
+                                                            className="form-control"
+                                                            placeholder="Enter MSME"
+                                                            onChange={(e) => handleImageUpload(e, "MSME")}
+                                                        />
+                                                    ) : (
+                                                        <div>
+                                                            <a href={institute?.document?.MSME} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("MSME")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="document.MSME"
+                                                    type="file"
+                                                    className="form-control"
+                                                    placeholder="Enter MSME"
+                                                    onChange={(e) => handleImageUpload(e, "MSME")}
+                                                />
+                                            )}
                                             <div className="text-danger">{errors?.document?.MSME}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>TIN <span className='text-danger'>*</span></label>
-                                            <Field name="document.TIN" type="text" className="form-control" placeholder="Enter TIN">
-
-                                            </Field>
+                                            <label>TIN <span className="text-danger">*</span></label>
+                                            {institute?.document?.TIN ? (
+                                                <div>
+                                                    {isInput === "TIN" ? (
+                                                        <Field
+                                                            name="document.TIN"
+                                                            type="file"
+                                                            className="form-control"
+                                                            placeholder="Enter TIN"
+                                                            onChange={(e) => handleImageUpload(e, "TIN")}
+                                                        />
+                                                    ) : (
+                                                        <div>
+                                                            <a href={institute?.document?.TIN} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("TIN")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="document.TIN"
+                                                    type="file"
+                                                    className="form-control"
+                                                    placeholder="Enter TIN"
+                                                    onChange={(e) => handleImageUpload(e, "TIN")}
+                                                />
+                                            )}
                                             <div className="text-danger">{errors?.document?.TIN}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>NAAC <span className='text-danger'>*</span></label>
-                                            <Field name="document.NAAC" type="text" className="form-control" placeholder="Enter NAAC">
-
-                                            </Field>
+                                            <label>NAAC <span className="text-danger">*</span></label>
+                                            {institute?.document?.NAAC ? (
+                                                <div>
+                                                    {isInput === "NAAC" ? (
+                                                        <Field
+                                                            name="document.NAAC"
+                                                            type="file"
+                                                            className="form-control"
+                                                            placeholder="Enter NAAC"
+                                                            onChange={(e) => handleImageUpload(e, "NAAC")}
+                                                        />
+                                                    ) : (
+                                                        <div>
+                                                            <a href={institute?.document?.NAAC} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("NAAC")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="document.NAAC"
+                                                    type="file"
+                                                    className="form-control"
+                                                    placeholder="Enter NAAC"
+                                                    onChange={(e) => handleImageUpload(e, "NAAC")}
+                                                />
+                                            )}
                                             <div className="text-danger">{errors?.document?.NAAC}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
-                                            <label>UG Capproved Letter <span className='text-danger'>*</span></label>
-                                            <Field name="document.UGCapprovedLetter" type="text" className="form-control" placeholder="Enter UG Capproved Letter">
-
-                                            </Field>
+                                            <label>UGC Approved Letter <span className="text-danger">*</span></label>
+                                            {institute?.document?.NAAC ? (
+                                                <div>
+                                                    {isInput === "UGCapprovedLetter" ? (
+                                                        <Field
+                                                            name="document.UGCapprovedLetter"
+                                                            type="file"
+                                                            className="form-control"
+                                                            placeholder="Enter UGC Approved Letter"
+                                                            onChange={(e) => handleImageUpload(e, "UGCapprovedLetter")}
+                                                        />
+                                                    ) : (
+                                                        <div>
+                                                            <a href={institute?.document?.NAAC} target="_blank" rel="noopener noreferrer" className="btn btn-primary me-2 w-50 text-white">Download</a>
+                                                            <button type="button" className="btn btn-success w-25" onClick={() => setisInput("UGCapprovedLetter")}>Edit</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Field
+                                                    name="document.UGCapprovedLetter"
+                                                    type="file"
+                                                    className="form-control"
+                                                    placeholder="Enter UGC Approved Letter"
+                                                    onChange={(e) => handleImageUpload(e, "UGCapprovedLetter")}
+                                                />
+                                            )}
                                             <div className="text-danger">{errors?.document?.UGCapprovedLetter}</div>
                                         </div>
-
                                     </div>
                                 </div>
+
                                 <div>
                                     <h4 className="mb-4">Login ID :-</h4>
                                     <div className="row">
@@ -621,14 +1105,10 @@ function EditProfile() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="text-center mt-3">
-                                    <input
-                                        type="submit"
-                                        className="btn btn-primary btn-lg px-4 py-2 "
-                                        value="Save"
-                                    />
+                                <div className="d-flex justify-content-end mt-2">
+                                    <button type="button" className="w-25 btn btn-danger me-2" onClick={() => resetForm()}>Cancel</button>
+                                    <button type="submit" className="w-25 btn btn-primary ms-2">Submit</button>
                                 </div>
-
                                 {/* Status */}
                                 {/* <div>
                                     <h4 className="mb-4">Status :-</h4>
@@ -646,10 +1126,10 @@ function EditProfile() {
                             </Form>
 
                         )}
-                    </Formik>
+                    </Formik >
 
-                </div>
-            </div>
+                </div >
+            </div >
         </>
     )
 }

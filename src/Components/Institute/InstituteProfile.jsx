@@ -5,13 +5,19 @@ import { useNavigate, Link } from 'react-router-dom'; // Import Link for navigat
 const InstituteProfile = () => {
     const { institute } = useContext(MainContext);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate(); // Hook for navigation
+    const Navigate = useNavigate(); // Hook for navigation
+
 
     useEffect(() => {
         if (institute) {
             setLoading(false);
         }
     }, [institute]);
+
+    
+    const handleEdit = () => {
+        Navigate("/editinstituteprofile", { state: { institute } });
+    };
 
     return (
         <>
@@ -243,12 +249,14 @@ const InstituteProfile = () => {
 
                         {/* Edit Button at the Start */}
                         <div className="d-flex justify-content-end mt-3 mb-5 ms-3">
-                            <Link
-                                to="/editinstituteprofile"
-                                className="btn btn-success py-2 w-50  shadow-lg mb-4"
-                            >
-                                Edit Profile
-                            </Link>
+                            {institute && (
+                                <button
+                                    onClick={() => handleEdit(institute)}
+                                    className="btn btn-success py-2 w-50  shadow-lg mb-4"
+                                >
+                                    Edit Profile
+                                </button>
+                            )}
                         </div>
 
                     </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -9,6 +9,7 @@ import {
     Tooltip,
     Legend,
 } from "chart.js";
+import axios from "axios";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -95,7 +96,7 @@ const FeesOverview = () => {
             description: "from last month",
         },
         {
-            title: "Defaulters",
+            title: "Due Fees",
             value: "50",
             icon: "fa-circle-exclamation",
             change: "↓ 3%",
@@ -104,6 +105,40 @@ const FeesOverview = () => {
         },
     ];
 
+    const [StudentData, setStudentData] = useState([]);
+    const [FeesData, setFeesData] = useState([]);
+
+
+    // const handlepost = async (v) => {
+    //     try {
+    //         const response = await axios.post('http://localhost:5500/api/book/post', v, {
+    //             headers: {
+    //                 'Content-Type': "application/json",
+    //             },
+    //             method: 'POST',
+    //         });
+    //         if (response.status === 201) {
+    //             alert("Data Sent Successfully")
+    //         }
+    //     } catch (error) {
+    //         if (error.response) {
+    //             console.log("something is wrong", error.response.data)
+    //         }
+    //     }
+
+    // }
+
+    useEffect(() => {
+        axios.get('api/student/get').then(res => setStudentData(res.data)).catch(err => console.log(err))
+    }, []);
+
+    console.log(StudentData);
+
+    useEffect(() => {
+        axios.get('api/fees/get').then(res => setFeesData(res.data)).catch(err => console.log(err))
+    }, []);
+
+    console.log(StudentData);
 
     return (
         <div className="page-wrapper">
@@ -114,7 +149,76 @@ const FeesOverview = () => {
 
                 </div>
                 <div className="row mb-0">
-                    {topCards.map((card, index) => (
+                    <div className="col-md-3 col-sm-6 mb-3">
+                        <div className="card p-3 shadow-sm">
+                            <div className="d-flex justify-content-between align-items-center ">
+                                <h6 className="text-muted mb-0">Total Collection</h6>
+                                <div
+                                    className="d-flex justify-content-center align-items-center rounded-circle bg-light text-danger "
+                                    style={{ width: "50px", height: "50px" }}
+                                >
+                                    <i className={`fa-solid fa-indian-rupee-sign text-primary`} style={{ fontSize: "1.5rem" }}></i>
+                                </div>
+                            </div>
+                            <h1 className={`fw-bold mb-3`}>₹77,000</h1>
+                            <small className={``}>
+                            ↑ 12%
+                            <span className="text-muted">from last month</span>
+                            </small>
+                        </div>
+                    </div>
+                    <div className="col-md-3 col-sm-6 mb-3">
+                        <div className="card p-3 shadow-sm">
+                            <div className="d-flex justify-content-between align-items-center ">
+                                <h6 className="text-muted mb-0">Total Students</h6>
+                                <div
+                                    className="d-flex justify-content-center align-items-center rounded-circle bg-light  "
+                                    style={{ width: "50px", height: "50px" }}
+                                >
+                                    <i className={`fa-solid fa-users text-primary`} style={{ fontSize: "1.5rem" }}></i>
+                                </div>
+                            </div>
+                            <h1 className={`fw-bold mb-3`}>₹50,000</h1>
+                            <small className={``}>↑ 12%
+                                 <span className="text-muted">from last month</span>
+                            </small>
+                        </div>
+                    </div>
+                    <div className="col-md-3 col-sm-6 mb-3">
+                        <div className="card p-3 shadow-sm">
+                            <div className="d-flex justify-content-between align-items-center ">
+                                <h6 className="text-muted mb-0">Pending Fee</h6>
+                                <div
+                                    className="d-flex justify-content-center align-items-center rounded-circle bg-light  "
+                                    style={{ width: "50px", height: "50px" }}
+                                >
+                                    <i className={`fa-solid fa-clock text-primary`} style={{ fontSize: "1.5rem" }}></i>
+                                </div>
+                            </div>
+                            <h1 className={`fw-bold mb-3`}>₹40,000</h1>
+                            <small className={``}>↑ 12%
+                            <span className="text-muted">from last month</span>
+                            </small>
+                        </div>
+                    </div>
+                    <div className="col-md-3 col-sm-6 mb-3">
+                        <div className="card p-3 shadow-sm">
+                            <div className="d-flex justify-content-between align-items-center ">
+                                <h6 className="text-muted mb-0">Due Fee</h6>
+                                <div
+                                    className="d-flex justify-content-center align-items-center rounded-circle bg-light  "
+                                    style={{ width: "50px", height: "50px" }}
+                                >
+                                    <i className={`fa-solid fa-indian-rupee-sign text-primary`} style={{ fontSize: "1.5rem" }}></i>
+                                </div>
+                            </div>
+                            <h1 className={`fw-bold mb-3`}>₹77,000  </h1>
+                            <small className={``}>↑ 12%
+                            <span className="text-muted">from last month</span>
+                            </small>
+                        </div>
+                    </div>
+                    {/* {topCards.map((card, index) => (
                         <div className="col-md-3 col-sm-6 mb-3" key={index}>
                             <div className="card p-3 shadow-sm">
                                 <div className="d-flex justify-content-between align-items-center ">
@@ -132,10 +236,8 @@ const FeesOverview = () => {
                                 </small>
                             </div>
                         </div>
-                    ))}
+                    ))} */}
                 </div>
-
-
 
                 <div className=" mx-auto">
                     <div className="card p-4 shadow-sm">

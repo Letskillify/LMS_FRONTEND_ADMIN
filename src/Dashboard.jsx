@@ -57,6 +57,7 @@ import HomeWork from './Components/Home Work/HomeWork.jsx'
 import AddClass from './Components/Class Management/AddClass.jsx'
 import ImageUploadComponent from './Components/Test files/ImageUploadComponent.jsx'
 import EditProfile from './Components/Institute/EditProfile.jsx'
+import Stock from './Components/stock/Stock.jsx'
 function Dashboard() {
   const token = sessionStorage.getItem("token");
 
@@ -122,6 +123,7 @@ function Dashboard() {
                   <Route path='/pendingfees' element={<PendingFeesTracker />} />
                   <Route path='/addclasses' element={<AddClass />} />
                   <Route path='/testfile' element={<ImageUploadComponent />} />
+                  <Route path='/stock-Account' element={<Stock/>}/>
                 </Route>
                 <Route path='/login' element={<LoginForm />} />
                 <Route path='/instituteregister' element={<InstituteRegister />} />
