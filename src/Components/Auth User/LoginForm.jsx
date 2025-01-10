@@ -5,18 +5,19 @@ import { Link, useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const [Message, setMessage] = useState()
-  const [ResData, setResData] = useState()
+  const [Message, setMessage] = useState();
+  const [ResData, setResData] = useState();
 
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email format").required("Email is required"),
     password: Yup.string()
       .min(6, "Password must be at least 6 characters")
       .required("Password is required"),
+    userType: Yup.string().required("Please select a user type"), // Validation for userType
   });
 
   const handleSubmit = (values) => {
-    fetch("http://localhost:5500/api/institute/login", {
+    fetch("/login", values, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,18 +30,14 @@ const LoginForm = () => {
           setMessage(data.message);
         } else {
           setMessage("Login successful.");
-          // Save token and instituteID in sessionStorage
           sessionStorage.setItem("token", data.savedLoggedDetails.token);
           sessionStorage.setItem("instituteID", data.savedLoggedDetails.instituteID);
           navigate("/");
           window.location.reload();
         }
       })
-      .catch((error) => console.error("Error:", error));
+      // .catch((error) => console.error("Error:", error));
   };
-
-  console.log(ResData);
-
 
   return (
     <section className="h-100" style={{ backgroundColor: "#9A616D" }}>
@@ -60,7 +57,7 @@ const LoginForm = () => {
                 <div className="col-md-6 col-lg-7 d-flex align-items-center">
                   <div className="card-body p-4 p-lg-5 text-black">
                     <Formik
-                      initialValues={{ email: "", password: "" }}
+                      initialValues={{ email: "", password: "", userType: "" }}
                       validationSchema={validationSchema}
                       onSubmit={handleSubmit}
                     >
@@ -97,6 +94,27 @@ const LoginForm = () => {
 
                           <div className="form-outline mb-4">
                             <Field
+                              as="select"
+                              name="userType"
+                              className="form-control form-control-lg"
+                            >
+                              <option value="" className="text-muted" disabled>
+                                Select User Type
+                              </option>
+                              <option value="Student">Student</option>
+                              <option value="Staff">Staff</option>
+                              <option value="Institute">Institute</option>
+                            </Field>
+                            <ErrorMessage
+                              name="userType"
+                              component="h6"
+                              className="text-danger ms-2 mt-2"
+                            />
+                          </div>
+
+
+                          <div className="form-outline mb-4">
+                            <Field
                               type="password"
                               name="password"
                               placeholder="Enter Password"
@@ -108,7 +126,16 @@ const LoginForm = () => {
                               className="text-danger ms-2 mt-2"
                             />
                           </div>
-                          <h6 className={` ms-2 ${Message === "Login successful." ? "text-success" : "text-danger"}`}>{Message}</h6>
+
+
+
+                          <h6
+                            className={`ms-2 ${Message === "Login successful." ? "text-success" : "text-danger"
+                              }`}
+                          >
+                            {Message}
+                          </h6>
+
                           <div className="pt-1 mb-4">
                             <button
                               className="btn btn-primary btn-lg w-100 btn-lg btn-block"

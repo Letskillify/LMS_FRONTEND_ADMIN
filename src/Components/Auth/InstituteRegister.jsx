@@ -104,18 +104,16 @@ const validationSchema = Yup.object({
             .matches(/^[A-Z]{5}[0-9]{4}[A-Z]$/, "Invalid PAN format")
             .nullable(),
     }),
-    document: Yup.array().of(
-        Yup.object({
-            ISOcertificate: Yup.mixed().nullable(),
-            GSTcertificate: Yup.mixed().nullable(),
-            AffiliationCertificate: Yup.mixed().nullable(),
-            PANcard: Yup.mixed().nullable(),
-            MSME: Yup.mixed().nullable(),
-            TIN: Yup.mixed().nullable(),
-            NAAC: Yup.mixed().nullable(),
-            UGCapprovedLetter: Yup.mixed().nullable(),
-        })
-    ),
+    document: Yup.object({
+        ISOcertificate: Yup.mixed().nullable(),
+        GSTcertificate: Yup.mixed().nullable(),
+        AffiliationCertificate: Yup.mixed().nullable(),
+        PANcard: Yup.mixed().nullable(),
+        MSME: Yup.mixed().nullable(),
+        TIN: Yup.mixed().nullable(),
+        NAAC: Yup.mixed().nullable(),
+        UGCapprovedLetter: Yup.mixed().nullable(),
+    }),
     loginPassword: Yup.string()
         .min(8, "Password must be at least 8 characters")
         .required("Password is required"),
@@ -189,22 +187,21 @@ function InstituteRegister() {
             upiID: null,
             panNo: null,
         },
-        document: [
-            {
-                ISOcertificate: null,
-                GSTcertificate: null,
-                AffiliationCertificate: null,
-                PANcard: null,
-                MSME: null,
-                TIN: null,
-                NAAC: null,
-                UGCapprovedLetter: null,
-            },
-        ],
+        document: {
+            ISOcertificate: null,
+            GSTcertificate: null,
+            AffiliationCertificate: null,
+            PANcard: null,
+            MSME: null,
+            TIN: null,
+            NAAC: null,
+            UGCapprovedLetter: null,
+        },
         loginPassword: "",
     };
 
     const HandleSubmit = async (values, { resetForm }) => {
+
         const data = {
             ...values,
             logo: uploadedData?.logo,
@@ -215,18 +212,18 @@ function InstituteRegister() {
                     signature: uploadedData?.signature,
                 },
             },
-            document: values.document.map(doc => ({
-                ...doc,
-                ISOcertificate: uploadedData?.ISOcertificate || doc.ISOcertificate,
-                GSTcertificate: uploadedData?.GSTcertificate || doc.GSTcertificate,
-                AffiliationCertificate: uploadedData?.AffiliationCertificate || doc.AffiliationCertificate,
-                PANcard: uploadedData?.PANcard || doc.PANcard,
-                MSME: uploadedData?.MSME || doc.MSME,
-                TIN: uploadedData?.TIN || doc.TIN,
-                NAAC: uploadedData?.NAAC || doc.NAAC,
-                UGCapprovedLetter: uploadedData?.UGCapprovedLetter || doc.UGCapprovedLetter,
-            })),
+            document: {
+                ISOcertificate: uploadedData?.ISOcertificate || values.document.ISOcertificate,
+                GSTcertificate: uploadedData?.GSTcertificate || values.document.GSTcertificate,
+                AffiliationCertificate: uploadedData?.AffiliationCertificate || values.document.AffiliationCertificate,
+                PANcard: uploadedData?.PANcard || values.document.PANcard,
+                MSME: uploadedData?.MSME || values.document.MSME,
+                TIN: uploadedData?.TIN || values.document.TIN,
+                NAAC: uploadedData?.NAAC || values.document.NAAC,
+                UGCapprovedLetter: uploadedData?.UGCapprovedLetter || values.document.UGCapprovedLetter,
+            },
         };
+
 
         try {
             const response = await axios.post("http://localhost:5500/api/institute/post", data);
@@ -250,7 +247,7 @@ function InstituteRegister() {
             <div className="modal-body">
                 <div className="nav-align-top mb-4">
 
-                    <Formik initialValues={initialValues} onSubmit={HandleSubmit} validationSchema={validationSchema}>
+                    <Formik initialValues={initialValues} onSubmit={HandleSubmit} >
                         {({ errors, touched, resetForm }) => (
                             <Form className="border p-4 shadow rounded bg-white">
                                 <h2>Institute registration  </h2>
@@ -485,28 +482,7 @@ function InstituteRegister() {
                                             </Field>
                                             < div className="text-danger">{errors?.logo}</div>
                                         </div>
-                                        <div className="col-md-4 mb-3">
-                                            <label htmlFor="aboutInstitute" className="form-label">
-                                                About Institute <span className="text-danger">*</span>
-                                            </label>
-                                            <Field
-                                                name="comment"
-                                                id="aboutInstitute"
-                                                className="form-control shadow-sm rounded"
-                                                rows="4"
-                                                placeholder="Write about the institute here..."
-                                                style={{
-                                                    resize: "none",
-                                                    border: "1px solid #ccc",
-                                                    fontFamily: "Arial, sans-serif",
-                                                    fontSize: "14px",
-                                                    padding: "10px",
-                                                    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-                                                }}
-                                                required
-                                            />
-                                            < div className="text-danger">{errors?.aboutInstitute}</div>
-                                        </div>
+
                                         <div className="col-md-4 mb-3 ">
                                             <label>Affiliation No <span className='text-danger'>*</span></label>
                                             <Field name="affiliationNo" type="text" className="form-control" placeholder="Affiliation No">
@@ -527,6 +503,29 @@ function InstituteRegister() {
 
                                             </Field>
                                             < div className="text-danger">{errors?.affiliationName}</div>
+                                        </div>
+                                        <div className="col-md-12 mb-3">
+                                            <label htmlFor="aboutInstitute" className="form-label">
+                                                About Institute <span className="text-danger">*</span>
+                                            </label>
+                                            <Field
+                                                as="textarea"
+                                                name="aboutInstitute"
+                                                id="aboutInstitute"
+                                                className="form-control shadow-sm rounded"
+                                                rows="4"
+                                                placeholder="Write about the institute here..."
+                                                style={{
+                                                    resize: "none",
+                                                    border: "1px solid #ccc",
+                                                    fontFamily: "Arial, sans-serif",
+                                                    fontSize: "14px",
+                                                    padding: "10px",
+                                                    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                                                }}
+                                                required
+                                            />
+                                            <div className="text-danger">{errors?.aboutInstitute}</div>
                                         </div>
                                         <div className='mb-3'>
                                             <div className="col-md-4">
@@ -816,90 +815,90 @@ function InstituteRegister() {
                                         <div className="col-md-4 mb-3">
                                             <label>ISO Certificate <span className="text-danger">*</span></label>
                                             <Field
-                                                name="document[0].ISOcertificate"
+                                                name="document.ISOcertificate"
                                                 type="file"
                                                 className="form-control"
                                                 placeholder="Enter ISO Certificate"
                                                 onChange={(e) => handleImageUpload(e, "ISOcertificate")}
                                             />
-                                            <div className="text-danger">{errors?.document?.[0]?.ISOcertificate}</div>
+                                            <div className="text-danger">{errors?.document?.ISOcertificate}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
                                             <label>GST Certificate <span className="text-danger">*</span></label>
                                             <Field
-                                                name="document[0].GSTcertificate"
+                                                name="document.GSTcertificate"
                                                 type="file"
                                                 className="form-control"
                                                 placeholder="Enter GST Certificate"
                                                 onChange={(e) => handleImageUpload(e, "GSTcertificate")}
                                             />
-                                            <div className="text-danger">{errors?.document?.[0]?.GSTcertificate}</div>
+                                            <div className="text-danger">{errors?.document?.GSTcertificate}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
                                             <label>Affiliation Certificate <span className="text-danger">*</span></label>
                                             <Field
-                                                name="document[0].AffiliationCertificate"
+                                                name="document.AffiliationCertificate"
                                                 type="file"
                                                 className="form-control"
                                                 placeholder="Enter Affiliation Certificate"
                                                 onChange={(e) => handleImageUpload(e, "AffiliationCertificate")}
                                             />
-                                            <div className="text-danger">{errors?.document?.[0]?.AffiliationCertificate}</div>
+                                            <div className="text-danger">{errors?.document?.AffiliationCertificate}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
                                             <label>PAN Card <span className="text-danger">*</span></label>
                                             <Field
-                                                name="document[0].PANcard"
+                                                name="document.PANcard"
                                                 type="file"
                                                 className="form-control"
                                                 placeholder="Enter PAN Card"
                                                 onChange={(e) => handleImageUpload(e, "PANcard")}
                                             />
-                                            <div className="text-danger">{errors?.document?.[0]?.PANcard}</div>
+                                            <div className="text-danger">{errors?.document?.PANcard}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
                                             <label>MSME <span className="text-danger">*</span></label>
                                             <Field
-                                                name="document[0].MSME"
+                                                name="document.MSME"
                                                 type="file"
                                                 className="form-control"
                                                 placeholder="Enter MSME"
                                                 onChange={(e) => handleImageUpload(e, "MSME")}
                                             />
-                                            <div className="text-danger">{errors?.document?.[0]?.MSME}</div>
+                                            <div className="text-danger">{errors?.document?.MSME}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
                                             <label>TIN <span className="text-danger">*</span></label>
                                             <Field
-                                                name="document[0].TIN"
+                                                name="document.TIN"
                                                 type="file"
                                                 className="form-control"
                                                 placeholder="Enter TIN"
                                                 onChange={(e) => handleImageUpload(e, "TIN")}
                                             />
-                                            <div className="text-danger">{errors?.document?.[0]?.TIN}</div>
+                                            <div className="text-danger">{errors?.document?.TIN}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
                                             <label>NAAC <span className="text-danger">*</span></label>
                                             <Field
-                                                name="document[0].NAAC"
+                                                name="document.NAAC"
                                                 type="file"
                                                 className="form-control"
                                                 placeholder="Enter NAAC"
                                                 onChange={(e) => handleImageUpload(e, "NAAC")}
                                             />
-                                            <div className="text-danger">{errors?.document?.[0]?.NAAC}</div>
+                                            <div className="text-danger">{errors?.document?.NAAC}</div>
                                         </div>
                                         <div className="col-md-4 mb-3">
                                             <label>UGC Approved Letter <span className="text-danger">*</span></label>
                                             <Field
-                                                name="document[0].UGCapprovedLetter"
+                                                name="document.UGCapprovedLetter"
                                                 type="file"
                                                 className="form-control"
                                                 placeholder="Enter UGC Approved Letter"
                                                 onChange={(e) => handleImageUpload(e, "UGCapprovedLetter")}
                                             />
-                                            <div className="text-danger">{errors?.document?.[0]?.UGCapprovedLetter}</div>
+                                            <div className="text-danger">{errors?.document?.UGCapprovedLetter}</div>
                                         </div>
                                     </div>
                                 </div>

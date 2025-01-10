@@ -1,57 +1,17 @@
-import React, { useState } from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 
 function FeeDetails() {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [showPopup, setShowPopup] = useState(false);
     const [searchData, setSearchData] = useState(null);
     const [query, setQuery] = useState('');
-    const [studentsData] = useState([
-        {
-            name: "Rahul Kumar",
-            roll: "2024001",
-            classInfo: "Class 10",
-            section: "A",
-            parentName: "Rajesh Kumar",
-            contact: "9876543210",
-            email: "rajesh@example.com",
-            feeStatus: "paid",
-            paidAmount: 8000,
-            pendingAmount: 0,
-            dueDate: "10 Apr 2024",
-        },
-        {
-            name: "Priya Singh",
-            roll: "2024002",
-            classInfo: "Class 9",
-            section: "B",
-            parentName: "Amit Singh",
-            contact: "9876543211",
-            email: "amit@example.com",
-            feeStatus: "pending",
-            paidAmount: 0,
-            pendingAmount: 5000,
-            dueDate: "15 Mar 2024",
-        },
-        {
-            name: "Arun Sharma",
-            roll: "2024003",
-            classInfo: "Class 10",
-            section: "A",
-            parentName: "Vijay Sharma",
-            contact: "9876543212",
-            email: "vijay@example.com",
-            feeStatus: "partially_paid",
-            paidAmount: 3000,
-            pendingAmount: 2000,
-            dueDate: "20 Mar 2024",
-        },
-    ]);
+    const [studentsData, setStudentsData] = useState([]);
     const [formData, setFormData] = useState({
         allClasses: '',
         allSections: '',
         status: '',
     });
-
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -62,32 +22,32 @@ function FeeDetails() {
         applyFilters({ ...formData, [name]: value });
     };
 
+
+
     const applyFilters = (filters) => {
         let filteredData = studentsData;
 
         // Apply filters
-        if (filters.allClasses && filters.allClasses !== 'All Classes') {
-            filteredData = filteredData.filter(student => student.classInfo === filters.allClasses);
+        if (filters?.allClasses && filters?.allClasses !== 'All Classes') {
+            filteredData = filteredData?.filter(student => student?.courseStream?.toLowerCase() === filters?.allClasses?.toLowerCase());
         }
-        if (filters.allSections && filters.allSections !== 'All Sections') {
-            filteredData = filteredData.filter(student => student.section === filters.allSections);
+        if (filters?.allSections && filters?.allSections !== 'All Sections') {
+            filteredData = filteredData?.filter(student => student?.section?.toLowerCase() === filters?.allSections?.toLowerCase());
         }
-        if (filters.status && filters.status !== 'All Status') {
-            filteredData = filteredData.filter(student => student.feeStatus.toLowerCase() === filters.status.toLowerCase());
+        if (filters?.status && filters?.status !== 'All status') {
+            filteredData = filteredData?.filter(student => student?.status?.toLowerCase() === filters.status?.toLowerCase());
         }
 
         // Apply search query
         if (query) {
             filteredData = filteredData.filter((data) =>
-                (data?.name ? data?.name.toLowerCase().includes(query.toLowerCase()) : false) ||
-                (data?.roll ? data?.roll.toString().includes(query.toLowerCase()) : false)
+                (data?.firstName ? data?.firstName?.toLowerCase().includes(query.toLowerCase()) : false) ||
+                (data?.rollNo ? data?.rollNo?.toString().includes(query.toLowerCase()) : false)
             );
         }
 
         setSearchData(filteredData);
     };
-
-
 
     const handleViewDetails = (student) => {
         setSelectedStudent(student);
@@ -101,16 +61,22 @@ function FeeDetails() {
 
     const handleSearch = (value) => {
         setQuery(value);
-        const filteredData = studentsData.filter((data) =>
-            (data?.name ? data?.name.toLowerCase().includes(value.toLowerCase()) : false) ||
-            (data?.roll ? data?.roll.toString().includes(value.toLowerCase()) : false) ||
-            (data?.section ? data?.section.toLowerCase().includes(value.toLowerCase()) : false) ||
-            (data?.parentName ? data?.parentName.toLowerCase().includes(value.toLowerCase()) : false) ||
-            (data?.contact ? data?.contact.toString().includes(value.toLowerCase()) : false) ||
-            (data?.email ? data?.email.toLowerCase().includes(value.toLowerCase()) : false)
+        const filteredData = studentsData?.filter((data) =>
+            (data?.firstName ? data?.firstName?.toLowerCase().includes(value.toLowerCase()) : false) ||
+            (data?.rollNo ? data?.rollNo?.toString().includes(value.toLowerCase()) : false) ||
+            (data?.section ? data?.section?.toLowerCase().includes(value.toLowerCase()) : false) ||
+            (data?.status ? data?.status?.toLowerCase().includes(value.toLowerCase()) : false) ||
+            (data?.courseStream ? data?.courseStream?.toLowerCase().includes(value.toLowerCase()) : false)
         );
         setSearchData(filteredData);
     };
+
+    useEffect(() => {
+        axios.get('api/fees/get').then(res => setStudentsData(res.data)).catch(err => console.log(err));
+    }, []);
+
+   
+
 
     return (
         <div className="studentfees-container">
@@ -134,7 +100,6 @@ function FeeDetails() {
                     </button>
                 </div>
 
-
                 <div className="mb-3 row">
                     <div className="col-4">
                         <select
@@ -143,8 +108,8 @@ function FeeDetails() {
                             onChange={handleChange}
                         >
                             <option value="">All Classes</option>
-                            <option value="Class 9">Class 9</option>
-                            <option value="Class 10">Class 10</option>
+                            <option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
                         </select>
                     </div>
                     <div className="col-4">
@@ -187,26 +152,34 @@ function FeeDetails() {
                     {(searchData || studentsData).map((student, index) => (
                         <tr key={index}>
                             <td>
-                                {student.name}
+                                {student?.studentId?.personalDetails?.firstName + " " + student?.studentId?.personalDetails?.lastName}
                                 <br />
-                                <small>{student.roll}</small>
+                                <small>{student?.studentId?.enrollmentDetails?.rollNo}</small>
                             </td>
                             <td>
-                                {student.classInfo}
-                                <br />
-                                {student.section}
+                                <span className={`courseStream ${student?.courseStream?.toLowerCase()}`} >
+
+                                    {student?.studentId?.enrollmentDetails?.courseStream?.toUpperCase()}
+                                    <br />
+                                </span>
+                                <span className={`section p-1 px-3 ${student?.courseStream?.toLowerCase()}`}>
+
+                                {student?.studentId?.enrollmentDetails?.section?.toUpperCase()}
+                                </span>
                             </td>
                             <td>
-                                {student.parentName}
+                                {student?.studentId?.parentDetails?.Father?.name}
                                 <br />
-                                {student.contact}
+                                {student?.studentId?.parentDetails?.Father?.contactNumber}
                             </td>
                             <td>
-                                <span className={`status p-1 px-3 ${student.feeStatus.toLowerCase()}`}>
-                                    {student.feeStatus.toUpperCase()}
+                                <span className={`status p-1 px-3 ${student?.status?.toLowerCase()}`} style={{ backgroundColor: student.status === 'Pending' ? '#d1ecf1' : student.status === 'Partially_Paid' ? '#d4edd8' : student.status === 'Overdue' ? '#f8d7da' : '' }}>
+                                    {student?.status?.toUpperCase()}
+
+
                                 </span>
                                 <br />
-                                Due: {student.dueDate}
+                                Due: {student?.dueDate ? new Date(student?.dueDate).toLocaleDateString() : ''}
                             </td>
                             <td>
                                 <button
@@ -236,27 +209,27 @@ function FeeDetails() {
                                 <div className="info-grid">
                                     <div>
                                         <span>Name</span>
-                                        <strong>{selectedStudent?.name}</strong>
+                                        <strong>{selectedStudent?.studentId?.personalDetails?.firstName + " " + selectedStudent?.studentId?.personalDetails?.lastName}</strong>
                                     </div>
                                     <div>
                                         <span>Roll Number</span>
-                                        <strong>{selectedStudent?.roll}</strong>
+                                        <strong>{selectedStudent?.studentId?.enrollmentDetails?.rollNo}</strong>
                                     </div>
                                     <div>
                                         <span>Class</span>
-                                        <strong>{selectedStudent?.classInfo} {selectedStudent?.section}</strong>
+                                        <strong>{selectedStudent?.studentId?.enrollmentDetails?.courseStream} {selectedStudent?.studentId?.enrollmentDetails?.section}</strong>
                                     </div>
                                     <div>
                                         <span>Parent's Name</span>
-                                        <strong>{selectedStudent?.parentName}</strong>
+                                        <strong>{selectedStudent?.studentId?.parentDetails?.Father?.name}</strong>
                                     </div>
                                     <div>
                                         <span>Contact</span>
-                                        <strong>{selectedStudent?.contact}</strong>
+                                        <strong>{selectedStudent?.studentId?.parentDetails?.Father?.contactNumber}</strong>
                                     </div>
                                     <div>
                                         <span>Email</span>
-                                        <strong>{selectedStudent?.email}</strong>
+                                        <strong>{selectedStudent?.studentId?.contactInfo?.email}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -265,22 +238,19 @@ function FeeDetails() {
                                 <div className="fee-status">
                                     <div className="fee-box green">
                                         Paid Amount<br />
-                                        {selectedStudent?.paidAmount}
+                                        {selectedStudent?.amountPaid}
                                     </div>
                                     <div className="fee-box red">
                                         Pending Amount<br />
-                                        {selectedStudent?.pendingAmount}
+                                        {selectedStudent?.amountPaid}
                                     </div>
                                     <div className="fee-box blue">
                                         Due Date<br />
-                                        {selectedStudent?.dueDate}
+                                        {selectedStudent?.dueDate ? new Date(selectedStudent?.dueDate).toLocaleDateString() : ''}
                                     </div>
                                 </div>
                             </div>
-                            <div className="section">
-                                <h3>Payment History</h3>
-                                <p>Details of payment history can be displayed here.</p>
-                            </div>
+
                         </div>
                     </div>
                 </div>
