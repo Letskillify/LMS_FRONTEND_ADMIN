@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react'
 import SupAdminDashboard from './SupAdminDashboard'
-import { Route, Routes } from 'react-router-dom'
 import { MainContext } from './Components/Controller/MainProvider'
 import StudentDashboard from './StudentDashboard'
 import TeacherDashboard from './TeacherDashboard'

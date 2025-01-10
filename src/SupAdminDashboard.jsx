@@ -58,6 +58,7 @@ import AddClass from './Components/Class Management/AddClass.jsx'
 import ImageUploadComponent from './Components/Test files/ImageUploadComponent.jsx'
 import EditProfile from './Components/Institute/EditProfile.jsx'
 import Stock from './Components/stock/Stock.jsx'
+import Subjects from './Components/Class Management/Subjects.jsx'
 function SupAdminDashboard() {
   const token = sessionStorage.getItem("token");
 
@@ -122,7 +123,8 @@ function SupAdminDashboard() {
                   <Route path='/feeremindertoall' element={<FeeReminderToAll />} />
                   <Route path='/pendingfees' element={<PendingFeesTracker />} />
                   <Route path='/addclasses' element={<AddClass />} />
-                  <Route path='/testfile' element={<ImageUploadComponent />} />\
+                  <Route path='/allclasses&subjects' element={<Subjects />} />
+                  <Route path='/testfile' element={<ImageUploadComponent />} />
                   <Route path='/stock-Account' element={<Stock/>}/>
                 </Route>
                 <Route path='/login' element={<LoginForm />} />
