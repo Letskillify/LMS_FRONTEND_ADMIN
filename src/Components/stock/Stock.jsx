@@ -6,7 +6,7 @@ import * as Yup from 'yup';
 function Stock() {
     const [stockApi, setstockApi] = useState()
 
-    const [initialValues] = useState({
+    const [initialValues, setInitialValues] = useState({
 
         firmId: '',
         name: '',
@@ -72,71 +72,71 @@ function Stock() {
 
 
 
-    const validationSchema = Yup.object().shape({
-        firmId: Yup.string().required('Firm ID is required'),
-        name: Yup.string().required('Name is required'),
-        alias: Yup.string().nullable(), // Optional
-        state: Yup.string().required('State is required'),
-        country: Yup.string().required('Country is required'),
-        city: Yup.string().required('City is required'),
-        address: Yup.string().required('Address is required'),
-        phone: Yup.string()
-            .matches(/^\d{10}$/, 'Phone number must be 10 digits')
-            .required('Phone number is required'),
-        alternatePhone: Yup.string()
-            .matches(/^\d{10}$/, 'Alternate phone number must be 10 digits')
-            .nullable(), // Optional
-        email: Yup.string().email('Invalid email address').required('Email is required'),
-        website: Yup.string()
-            .url('Invalid website URL')
-            .nullable(), // Optional
-        contactPersons: Yup.array()
-            .of(
-                Yup.object().shape({
-                    name: Yup.string().required('Contact person name is required'),
-                    designation: Yup.string().nullable(), // Optional
-                    phone: Yup.string()
-                        .matches(/^\d{10}$/, 'Phone number must be 10 digits')
-                        .nullable(), // Optional
-                    email: Yup.string().email('Invalid email address').nullable(), // Optional
-                })
-            )
-            .required('At least one contact person is required'),
-        companyCategory: Yup.string().nullable(), // Optional
-        currencyType: Yup.string().nullable(), // Optional
-        aadharNumber: Yup.string()
-            .matches(/^\d{12}$/, 'Aadhar number must be 12 digits')
-            .nullable(), // Optional
-        panNumber: Yup.string()
-            .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN number format')
-            .nullable(), // Optional
-        bankDetails: Yup.array()
-            .of(
-                Yup.object().shape({
-                    accountHolderName: Yup.string().required('Account holder name is required'),
-                    accountNumber: Yup.string().required('Account number is required'),
-                    ifscCode: Yup.string().required('IFSC code is required'),
-                    bankName: Yup.string().required('Bank name is required'),
-                    branchName: Yup.string().nullable(), // Optional
-                })
-            )
-            .required('Bank details are required'),
-        // businessType: Yup.string().required('Business type is required'),
-        gst: Yup.object().shape({
-            type: Yup.string().required('GST type is required'),
-            gstPercentage: Yup.number()
-                .min(0, 'GST percentage must be at least 0')
-                .max(100, 'GST percentage cannot exceed 100')
-                .nullable(), // Optional
-            // gstNumber: Yup.string().nullable(), // Optional
-            // firmType: Yup.string().nullable(), // Optional
-        }),
-        businessDetails: Yup.object().shape({
-            registrationNumber: Yup.string().required('Registration number is required'),
-            incorporationDate: Yup.date().required('Incorporation date is required'),
-            industryType: Yup.string().nullable(), // Optional
-        }),
-    });
+    // const validationSchema = Yup.object().shape({
+    //     firmId: Yup.string().required('Firm ID is required'),
+    //     name: Yup.string().required('Name is required'),
+    //     alias: Yup.string().nullable(), // Optional
+    //     state: Yup.string().required('State is required'),
+    //     country: Yup.string().required('Country is required'),
+    //     city: Yup.string().required('City is required'),
+    //     address: Yup.string().required('Address is required'),
+    //     phone: Yup.string()
+    //         .matches(/^\d{10}$/, 'Phone number must be 10 digits')
+    //         .required('Phone number is required'),
+    //     alternatePhone: Yup.string()
+    //         .matches(/^\d{10}$/, 'Alternate phone number must be 10 digits')
+    //         .nullable(), // Optional
+    //     email: Yup.string().email('Invalid email address').required('Email is required'),
+    //     website: Yup.string()
+    //         .url('Invalid website URL')
+    //         .nullable(), // Optional
+    //     contactPersons: Yup.array()
+    //         .of(
+    //             Yup.object().shape({
+    //                 name: Yup.string().required('Contact person name is required'),
+    //                 designation: Yup.string().nullable(), // Optional
+    //                 phone: Yup.string()
+    //                     .matches(/^\d{10}$/, 'Phone number must be 10 digits')
+    //                     .nullable(), // Optional
+    //                 email: Yup.string().email('Invalid email address').nullable(), // Optional
+    //             })
+    //         )
+    //         .required('At least one contact person is required'),
+    //     companyCategory: Yup.string().nullable(), // Optional
+    //     currencyType: Yup.string().nullable(), // Optional
+    //     aadharNumber: Yup.string()
+    //         .matches(/^\d{12}$/, 'Aadhar number must be 12 digits')
+    //         .nullable(), // Optional
+    //     panNumber: Yup.string()
+    //         .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN number format')
+    //         .nullable(), // Optional
+    //     bankDetails: Yup.array()
+    //         .of(
+    //             Yup.object().shape({
+    //                 accountHolderName: Yup.string().required('Account holder name is required'),
+    //                 accountNumber: Yup.string().required('Account number is required'),
+    //                 ifscCode: Yup.string().required('IFSC code is required'),
+    //                 bankName: Yup.string().required('Bank name is required'),
+    //                 branchName: Yup.string().nullable(), // Optional
+    //             })
+    //         )
+    //         .required('Bank details are required'),
+    //     // businessType: Yup.string().required('Business type is required'),
+    //     gst: Yup.object().shape({
+    //         type: Yup.string().required('GST type is required'),
+    //         gstPercentage: Yup.number()
+    //             .min(0, 'GST percentage must be at least 0')
+    //             .max(100, 'GST percentage cannot exceed 100')
+    //             .nullable(), // Optional
+    //         // gstNumber: Yup.string().nullable(), // Optional
+    //         // firmType: Yup.string().nullable(), // Optional
+    //     }),
+    //     businessDetails: Yup.object().shape({
+    //         registrationNumber: Yup.string().required('Registration number is required'),
+    //         incorporationDate: Yup.date().required('Incorporation date is required'),
+    //         industryType: Yup.string().nullable(), // Optional
+    //     }),
+    // });
 
 
     return (
@@ -150,7 +150,7 @@ function Stock() {
             </div>
             <Formik initialvalue={initialValues} onSubmit={(values) => {
                 handleStock(values);
-            }} validationSchema={validationSchema}>
+            }} >
                 {() => (
 
                     <div className="container mt-5">

@@ -38,6 +38,9 @@ function SideDrawer() {
     const Library = () => {
         setOpenToggle(OpenToggle === "Library" ? '' : 'Library')
     }
+    const staffToggle = () => {
+        setOpenToggle(OpenToggle === "staffinfo" ? '' : 'staffinfo')
+    }
     const time_Table = [
         '/addtimetable'
     ]
@@ -85,6 +88,9 @@ function SideDrawer() {
         '/bookreturn',
         '/bookissue'
     ]
+    const staff_info = [
+        '/staff-management'
+    ]
     // const admission
     const isActive = activeRoutes.includes(location.pathname);
     const Adm_isActive = admission_activeRoutes.includes(location.pathname);
@@ -94,6 +100,7 @@ function SideDrawer() {
     const Attendance = Manage_Attendance.includes(location.pathname);
     const studentReport = attendance_report.includes(location.pathname);
     const timetable = time_Table.includes(location.pathname);
+    const staff = staff_info.includes(location.pathname);
     const Stf_salary = stf_Salary.includes(location.pathname);
     const librarypaths = librarypath.includes(location.pathname);
 
@@ -270,12 +277,29 @@ function SideDrawer() {
                     </li>
 
 
-                    <NavLink className="menu-item" activeclassname="active" to="staff-management">
-                        <Link to="/staff-management" className="menu-link">
-                            <i className='menu-icon tf-icons bx bxs-group'></i>
-                            <div>Staff Management</div>
-                        </Link>
-                    </NavLink>
+                    <li className={`menu-item ${staff ? 'active' : ''} ${OpenToggle == 'staffinfo' ? 'open' : ''}`} id='staffinfo' >
+                        <a href="javascript:void(0);" className="menu-link menu-toggle" onClick={staffToggle}>
+                            <i className='menu-icon tf-icons bx bx-user'></i>
+                            <div>Staff</div>
+                        </a>
+                        <ul className="menu-sub">
+                            <NavLink activeclassname="active" className="menu-item" to="/staff-management">
+                                <a href="javascript:void(0);" className="menu-link">
+                                    <div>Staff Management</div>
+                                </a>
+                            </NavLink>
+                            <NavLink activeclassname="active" className="menu-item" to="/teaching-staff">
+                                <a href="javascript:void(0);" className="menu-link">
+                                    <div>Teaching Staff</div>
+                                </a>
+                            </NavLink>
+                            <NavLink activeclassname="active" className="menu-item" to="/non-teaching-staff">
+                                <a href="javascript:void(0);" className="menu-link">
+                                    <div>Non Teaching Staff</div>
+                                </a>
+                            </NavLink>
+                        </ul>
+                    </li>
                     <li className={`menu-item ${Id_card ? 'active' : ''} ${OpenToggle == 'idCard' ? 'open' : ''}`} id='idCard' >
                         <a href="javascript:void(0);" className="menu-link menu-toggle" onClick={idCardStu}>
                             <i className='menu-icon tf-icons bx bx-id-card'></i>

@@ -17,12 +17,26 @@ function BooksList() {
         publisher: Yup.string().required('Publisher is required'),
         author: Yup.string().required('Author is required'),
         subject: Yup.string().required('Subject is required'),
-        bookID: Yup.number().required('Book ID is required'),
         quantity: Yup.number().required('Quantity is required'),
         availability: Yup.string().required('Availability is required'),
         price: Yup.number().required('Price is required'),
         postDate: Yup.date().required('Post Date is required'),
     })
+
+
+    const fetchData = async () => {
+        try {
+            const res = await axios.get(`http://localhost:5500/api/book/get`);
+            setBookLists(res.data)
+        } catch (error) {
+            console.error("Error fetching data:", error)
+        }
+    }
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
 
     const sortFunctions = {
         asc: (a, b) => a.bookName.localeCompare(b.bookName),
@@ -51,7 +65,7 @@ function BooksList() {
 
 
     const [initialvalue, setinitialvalue] = useState({
-        bookID: "",
+        instituteId: sessionStorage.getItem("instituteID"),
         bookName: "",
         bookNumber: "",
         publisher: "",
@@ -80,16 +94,20 @@ function BooksList() {
 
     const handlepost = async (v, { resetForm }) => {
         try {
-            const response = await axios.post('http://localhost:5500/api/book/post', v, {
+            const response = await axios.post('api/book/post', v, {
                 headers: {
                     'Content-Type': "application/json",
                 },
+                method: 'POST'
 
             });
             if (response.status === 201) {
                 alert("Data Sent Successfully")
                 resetForm();
+                fetchData();
                 setpopup(false)
+            } else {
+                alert("Failed to Send Data")
             }
         } catch (error) {
             if (error.response) {
@@ -108,86 +126,24 @@ function BooksList() {
             });
             if (res.status === 200) {
                 alert("your data is delete successfully")
-
-
+                fetchData();
             }
         } catch (error) {
             console.error("Error deleting the book:", error)
         }
     }
-
-
-    useEffect(() => {
-        axios.get('http://localhost:5500/api/book/get').then(res => setBookLists(res.data)
-        ).catch(err => console.log(err))
-    }, [BookLists])
-
-
-
-
-
-    const [formData, setFormData] = useState({
-        bookID: "",
-        bookName: "",
-        bookNumber: "",
-        rackNo: "",
-        publisher: "",
-        author: "",
-        subject: "",
-        quantity: "",
-        availability: "",
-        price: "",
-        postDate: "",
-    });
-
-    const [currentBookId, setCurrentBookId] = useState(null);
-
-    // Handle Edit Button Click
-    const handleEdit = (id) => {
-        // Find the specific book
-        const book = BookLists.find((book) => book._id === id);
-        if (book) {
-            setCurrentBookId(id);
-            setFormData({
-                bookID: book.bookID,
-                bookName: book.bookName,
-                bookNumber: book.bookNumber,
-                rackNo: book.rackNo,
-                publisher: book.publisher,
-                author: book.author,
-                subject: book.subject,
-                quantity: book.quantity,
-                // availability: book.availability ? "Available" : "Not Available",
-                price: book.price,
-                postDate: book.postDate,
-            });
-        }
-    };
-
-
-
-    // Handle Form Input Change
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
     // Handle Form Submit for Update
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        console.log(formData);
-
+    const handleUpdate = async (values, id) => {
         try {
-            const response = await axios.put(`http://localhost:5500/api/book/update/${currentBookId}`, formData);
+            const response = await axios.put(`http://localhost:5500/api/book/update/${id}`, values);
 
             alert("Book updated successfully!");
-            console.log(response.data);
+            fetchData();
         } catch (error) {
             console.error("Error updating book:", error);
             alert("Failed to update book!");
         }
     };
-
 
     return (
         <>
@@ -197,7 +153,7 @@ function BooksList() {
                 <div className="page-wrapper">
                     <div className="content">
                         {/* <!-- Page Header --> */}
-                        <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
+                        <div className="d-md-flex d-block align-items-center justify-content-between mb-3 ms-3">
                             <div className="my-auto mb-2">
                                 <h3 className="page-title mb-1">Books</h3>
                                 <nav>
@@ -337,47 +293,185 @@ function BooksList() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {(SearchData || BookLists).map((BookList, index) =>
+                                            {(SearchData || BookLists).map((BookList, index) => (
                                                 <tr key={index}>
                                                     <td><a href="#" className="link-primary">{BookList.bookID}</a></td>
                                                     <td>{BookList.bookName}</td>
-                                                    <td>{BookList.bookNumber}
-                                                    </td>
+                                                    <td>{BookList.bookNumber}</td>
                                                     <td>{BookList.publisher}</td>
-                                                    <td> {BookList.author}</td>
-                                                    <td> {BookList.subject}</td>
-                                                    <td> {BookList.rackNo}</td>
-                                                    <td> {BookList.quantity}</td>
-                                                    <td> {BookList.availability ? "Available" : "Not Available"}</td>
-                                                    <td> {BookList.price}</td>
-                                                    <td>{BookList.postDate}</td>
+                                                    <td>{BookList.author}</td>
+                                                    <td>{BookList.subject}</td>
+                                                    <td>{BookList.rackNo}</td>
+                                                    <td>{BookList.quantity}</td>
+                                                    <td>{BookList.availability ? "Available" : "Not Available"}</td>
+                                                    <td>{BookList.price}</td>
+                                                    <td>{BookList.postDate ? new Date(BookList.postDate).toLocaleDateString() : ''}</td>
                                                     <td>
                                                         <div className="d-flex align-items-center">
                                                             <div className="dropdown">
                                                                 <a href="#"
-                                                                    className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
+                                                                    className="btn btn-black btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
                                                                     data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i className="ti ti-dots-vertical fs-14"></i>
+                                                                    <i className="fa fa-ellipsis-v" aria-hidden="true"></i>
                                                                 </a>
                                                                 <ul className="dropdown-menu dropdown-menu-right p-3">
-
                                                                     <li>
-                                                                        <Link className="dropdown-item rounded-1" href="#"
+                                                                        <a className="dropdown-item rounded-1"
+                                                                            href="#"
                                                                             data-bs-toggle="modal"
-                                                                            data-bs-target="#edit_library_book" onClick={() => handleEdit(BookList._id)} ><i
-                                                                                className="ti ti-edit-circle me-2"></i>Edit</Link>
+                                                                            data-bs-target={`#edit_library_book_${index}`}>
+                                                                            <i className="fa fa-text-width me-1" aria-hidden="true"></i>Edit</a>
                                                                     </li>
                                                                     <li>
-                                                                        <Link className="dropdown-item rounded-1" onClick={() => handledelete(BookList._id)}><i
-                                                                            className="ti ti-trash-x me-2"></i>Delete</Link>
+                                                                        <a className="dropdown-item rounded-1"
+                                                                            onClick={() => handledelete(BookList._id)}>
+                                                                            <i className="fa fa-trash me-1" aria-hidden="true"></i>Delete</a>
                                                                     </li>
                                                                 </ul>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                </tr>
-                                            )}
 
+                                                    {/* Edit Book Modal */}
+                                                    <div className="modal fade" id={`edit_library_book_${index}`}>
+                                                        <div className="modal-dialog modal-dialog-centered">
+                                                            <div className="modal-content">
+                                                                <div className="modal-header">
+                                                                    <h4 className="modal-title">Edit Book</h4>
+                                                                    <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <Formik
+                                                                    initialValues={{
+                                                                        bookName: BookList?.bookName,
+                                                                        bookNumber: BookList?.bookNumber,
+                                                                        rackNo: BookList?.rackNo,
+                                                                        publisher: BookList?.publisher,
+                                                                        author: BookList?.author,
+                                                                        subject: BookList?.subject,
+                                                                        quantity: BookList?.quantity,
+                                                                        availability: BookList?.availability,
+                                                                        price: BookList?.price,
+                                                                        postDate: BookList?.postDate,
+                                                                    }}
+                                                                    onSubmit={(values) => { handleUpdate(values, BookList._id) }}
+                                                                >
+                                                                    {({ values, handleChange }) => (
+                                                                        <Form>
+                                                                            <div className="modal-body">
+                                                                                <div className="mb-3">
+                                                                                    <label>Book Name</label>
+                                                                                    <Field
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        name="bookName"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Book No</label>
+                                                                                    <Field
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        name="bookNumber"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Rack No</label>
+                                                                                    <Field
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        name="rackNo"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Publisher</label>
+                                                                                    <Field
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        name="publisher"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Author</label>
+                                                                                    <Field
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        name="author"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Subject</label>
+                                                                                    <Field
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        name="subject"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Quantity</label>
+                                                                                    <Field
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        name="quantity"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Availability</label>
+                                                                                    <Field
+                                                                                        as="select"
+                                                                                        className="form-select"
+                                                                                        name="availability"
+                                                                                        onChange={handleChange}
+                                                                                    >
+                                                                                        <option value={true}>Yes</option>
+                                                                                        <option value={false}>No</option>
+                                                                                    </Field>
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Price</label>
+                                                                                    <Field
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        name="price"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="mb-3">
+                                                                                    <label>Post Date</label>
+                                                                                    <Field
+                                                                                        type="date"
+                                                                                        className="form-control"
+                                                                                        name="postDate"
+                                                                                        onChange={handleChange}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="modal-footer">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className="btn btn-light"
+                                                                                    data-bs-dismiss="modal"
+                                                                                >
+                                                                                    Cancel
+                                                                                </button>
+                                                                                <button type="submit" className="btn btn-primary">
+                                                                                    Save Changes
+                                                                                </button>
+                                                                            </div>
+                                                                        </Form>
+                                                                    )}
+                                                                </Formik>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </table>
                                 </div>
@@ -471,7 +565,7 @@ function BooksList() {
                                                                 }
                                                             </div>
                                                         </div>
-                                                        <div className="mb-3">
+                                                        {/* <div className="mb-3">
                                                             <label className="form-label">Book ID</label>
                                                             <Field type="number" name="bookID" className="form-control" />
                                                             <div className='text-danger'>
@@ -479,7 +573,7 @@ function BooksList() {
                                                                     errors?.bookID
                                                                 }
                                                             </div>
-                                                        </div>
+                                                        </div> */}
                                                     </div>
                                                     <div className="row">
                                                         <div className="col-md-6">
@@ -544,137 +638,6 @@ function BooksList() {
                     </div>
                 </div>
                 {/* <!-- Add Book --> */}
-
-                {/* <!-- Edit Book --> */}
-                <div className="modal fade" id="edit_library_book">
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h4 className="modal-title">Edit Book</h4>
-                                <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <form onSubmit={handleSubmit}>
-                                <div className="modal-body">
-                                    <div className="mb-3">
-                                        <label>Book Name</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="bookName"
-                                            value={formData.bookName}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Book No</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="bookNumber"
-                                            value={formData.bookNumber}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Rack No</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="rackNo"
-                                            value={formData.rackNo}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Publisher</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="publisher"
-                                            value={formData.publisher}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Author</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="author"
-                                            value={formData.author}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Subject</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="subject"
-                                            value={formData.subject}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Quantity</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="quantity"
-                                            value={formData.quantity}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Availability</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="availability"
-                                            value={formData.availability}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Price</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="price"
-                                            value={formData.price}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label>Post Date</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="postDate"
-                                            value={formData.postDate}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-light" data-bs-dismiss="modal">
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn btn-primary">
-                                        Save Changes
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                {/* <!-- Edit Book --> */}
-
-
-
-
-
-
             </div >
             {/* <!-- /Main Wrapper --> */}
         </>

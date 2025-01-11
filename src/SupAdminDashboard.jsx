@@ -4,7 +4,7 @@ import SideDrawer from './Components/Layout/SideDrawer.jsx'
 import Footer from './Components/Layout/Footer.jsx'
 import Navbar from './Components/Layout/Navbar.jsx'
 import Home from './Components/Graph.jsx'
-import StaffManagement from './Components/Staff/StaffManagement.jsx'
+// import StaffManagement from './Components/Staff/StaffManagement.jsx'
 import Studentsinformation from './Components/Students/Studentsinformation.jsx'
 import StudentPromotion from './Components/Students/StudentPromotion.jsx'
 import StudentTransfer from './Components/Students/StudentTransfer.jsx'
@@ -59,6 +59,9 @@ import ImageUploadComponent from './Components/Test files/ImageUploadComponent.j
 import EditProfile from './Components/Institute/EditProfile.jsx'
 import Stock from './Components/stock/Stock.jsx'
 import Subjects from './Components/Class Management/Subjects.jsx'
+import StaffManagement from './Components/Staff/StaffManagement.jsx'
+import NonTeachingStaff from './Components/Staff/NonTeachingStaff.jsx'
+import TeachingStaff from './Components/Staff/TeachingStaff.jsx'
 function SupAdminDashboard() {
   const token = sessionStorage.getItem("token");
 
@@ -67,7 +70,7 @@ function SupAdminDashboard() {
       <div className="layout-wrapper layout-content-navbar">
         <div className="layout-container">
           {token ? <SideDrawer /> : ''}
-          <div className="layout-page " style={{ overflowY: 'scroll', height: '100vh', scrollbarWidth: 'thin'}}>
+          <div className="layout-page " style={{ overflowY: 'scroll', height: '100vh', scrollbarWidth: 'thin' }}>
             {token ? <Navbar /> : ''}
             <div className="content-wrapper">
               <Routes>
@@ -79,7 +82,6 @@ function SupAdminDashboard() {
                   <Route path="/editstudents" element={<EditStudentData />}></Route>
                   <Route path="/admissionenquiry" element={<AdmissionEnquiry />}></Route>
                   <Route path="/admit-bulk-students" element={<AdmitBulk />}></Route>
-                  <Route path="/staff-management" element={<StaffManagement />}></Route>
                   <Route path="/student-info" element={<Studentsinformation />}></Route>
                   <Route path="/student-promote" element={<StudentPromotion />}></Route>
                   <Route path="/student-transfer" element={<StudentTransfer />}></Route>
@@ -125,7 +127,10 @@ function SupAdminDashboard() {
                   <Route path='/addclasses' element={<AddClass />} />
                   <Route path='/allclasses&subjects' element={<Subjects />} />
                   <Route path='/testfile' element={<ImageUploadComponent />} />
-                  <Route path='/stock-Account' element={<Stock/>}/>
+                  <Route path='/stock-Account' element={<Stock />} />
+                  <Route path="/staff-management" element={<StaffManagement />}></Route>
+                  <Route path="/non-teaching-staff" element={<NonTeachingStaff />}></Route>
+                  <Route path="/teaching-staff" element={<TeachingStaff />}></Route>
                 </Route>
                 <Route path='/login' element={<LoginForm />} />
                 <Route path='/instituteregister' element={<InstituteRegister />} />

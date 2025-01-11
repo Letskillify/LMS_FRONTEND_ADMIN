@@ -1,141 +1,90 @@
-import React, { useState } from 'react'
+import axios from 'axios';
+import React, { useEffect, useState } from 'react'
+import { EditApi, getApi } from '../Custom Hooks/CustomeHook';
 
 function BookIssue() {
 	const [querry, setquerry] = useState()
-    const [SearchData, setSearchData] = useState()
-	const [BookLists, setBookLists] = useState([
+	const [SearchData, setSearchData] = useState()
+	const [BookLists, setBookLists] = useState([])
 
 
-		{
-			ID: "IB853629",
-			issueDate: "20 Apr 2024",
-			returnDate: "19 May 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Janet",
-			class: "III, A",
-			booksIssued: 1,
-			booksReturned: 0
-		},
-		{
-			ID: "IB853628",
-			issueDate: "24 Apr 2024",
-			returnDate: "20 May 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Joann",
-			class: "IV, B",
-			booksIssued: 5,
-			booksReturned: 3
-		},
-		{
-			ID: "IB853627",
-			issueDate: "02 May 2024",
-			returnDate: "01 Jun 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Kathleen",
-			class: "III, A",
-			booksIssued: 4,
-			booksReturned: 2
-		},
-		{
-			ID: "IB853626",
-			issueDate: "16 May 2024",
-			returnDate: "15 Jun 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Gifford",
-			class: "I, B",
-			booksIssued: 3,
-			booksReturned: 2
-		},
-		{
-			ID: "IB853625",
-			issueDate: "22 May 2024",
-			returnDate: "20 Jun 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Lisa",
-			class: "II, B",
-			booksIssued: 6,
-			booksReturned: 4
-		},
-		{
-			ID: "IB853624",
-			issueDate: "10 Jun 2024",
-			returnDate: "08 Jul 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Ralph",
-			class: "III, B",
-			booksIssued: 4,
-			booksReturned: 2
-		},
-		{
-			ID: "IB853623",
-			issueDate: "15 Jun 2024",
-			returnDate: "14 Jul 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Julie",
-			class: "V, A",
-			booksIssued: 5,
-			booksReturned: 3
-		},
-		{
-			ID: "IB853622",
-			issueDate: "26 Jun 2024",
-			returnDate: "25 Jul 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Ryan",
-			class: "VII, B",
-			booksIssued: 3,
-			booksReturned: 1
-		},
-		{
-			ID: "IB853621",
-			issueDate: "06 Jul 2024",
-			returnDate: "05 Aug 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Susan",
-			class: "VIII, B",
-			booksIssued: 6,
-			booksReturned: 4
-		},
-		{
-			ID: "IB853620",
-			issueDate: "18 Jul 2024",
-			returnDate: "16 Aug 2024",
-			img: "assets/img/students/student-01.jpg",
-			name: "Richard",
-			class: "VII, B",
-			booksIssued: 2,
-			booksReturned: 1
-		},
 
-
-	])
 	const sortFunctions = {
-        asc: (a, b) => a.bookName.localeCompare(b.bookName),
-        desc: (a, b) => b.bookName.localeCompare(a.bookName),
-        recentlyViewed: () => [...BookLists].reverse(),
-        recentlyAdded: (a, b) => new Date(b.postDate) - new Date(a.postDate),
-    };
-    const handleSort = (type) => {
-        const sortedBooks =
-            type === 'recentlyViewed' ? sortFunctions[type]()
-                : [...BookLists].sort(sortFunctions[type]);
-        setBookLists(sortedBooks);
-    };
+		asc: (a, b) => a.bookName.localeCompare(b.bookName),
+		desc: (a, b) => b.bookName.localeCompare(a.bookName),
+		recentlyViewed: () => [...BookLists].reverse(),
+		recentlyAdded: (a, b) => new Date(b.postDate) - new Date(a.postDate),
+	};
+	const handleSort = (type) => {
+		const sortedBooks =
+			type === 'recentlyViewed' ? sortFunctions[type]()
+				: [...BookLists].sort(sortFunctions[type]);
+		setBookLists(sortedBooks);
+	};
 
-    function SearchFilter(v) {
-        setquerry(v)
-        const filterData = BookLists.filter((data) => 
-            (data?.name ? data?.name.toLowerCase().includes(v.toLowerCase()) : false) ||(data?.ID ? data?.ID.toString().includes(v.toLowerCase()) : false)
-           
-        );
-        
-        setSearchData(filterData);
+	function SearchFilter(v) {
+		setquerry(v)
+		const filterData = BookLists.filter((data) =>
+			(data?.name ? data?.name.toLowerCase().includes(v.toLowerCase()) : false) || (data?.ID ? data?.ID.toString().includes(v.toLowerCase()) : false)
 
-    }
+		);
+
+		setSearchData(filterData);
+
+	}
+	useEffect(() => {
+		axios.get('/api/library/get').then(res => setBookLists(res.data)
+		).catch(err => console.log(err))
+	}, [])
+	
+	const handleConform = (id) => {
+		EditApi(`/api/library/update/${id}`, { status: "Issued" }, "Book Issue Successfully")
+			.then(() => {
+				// Hide the modal after the API call is successful
+				const modalElement = document.getElementById('book_details');
+				const modalInstance = bootstrap.Modal.getInstance(modalElement);
+				if (modalInstance) {
+					modalInstance.hide();
+				}
+			})
+			.catch((error) => {
+				console.error("Error issuing book:", error);
+			});
+	};
+	const handleReturn = (id) => {
+		EditApi(`/api/library/update/${id}`, { status: "Returned" }, "Book Issue Successfully")
+			.then(() => {
+				// Hide the modal after the API call is successful
+				const modalElement = document.getElementById('book_details');
+				const modalInstance = bootstrap.Modal.getInstance(modalElement);
+				if (modalInstance) {
+					modalInstance.hide();
+				}
+			})
+			.catch((error) => {
+				console.error("Error issuing book:", error);
+			});
+	};
+
+	// const handleReject = (id) => {
+	// 	EditApi(`/api/library/update/${id}`, { status: "Returned" }, "Book successfully returned")
+	// 		.then(() => {
+	// 			// Hide the modal after the API call is successful
+	// 			const modalElement = document.getElementById('book_details');
+	// 			const modalInstance = bootstrap.Modal.getInstance(modalElement);
+	// 			if (modalInstance) {
+	// 				modalInstance.hide();
+	// 			}
+	// 		})
+	// 		.catch((error) => {
+	// 			console.error("Error issuing book:", error);
+	// 		});
+	// };
+
 	return (
 		<>
 			{/* <!-- Main Wrapper --> */}
-			<div className="main-wrapper container mt-5">
+			<div className="main-wrapper container" oveflow="auto">
 
 
 
@@ -186,7 +135,7 @@ function BookIssue() {
 										</li>
 										<li>
 											<a href="javascript:void(0);" className="dropdown-item rounded-1"><i
-												className="ti ti-file-type-xls me-1"></i>Export as Excel </a>
+												className="ti ti-file-type-xls "></i>Export as Excel </a>
 										</li>
 									</ul>
 								</div>
@@ -205,52 +154,52 @@ function BookIssue() {
 											<i className="ti ti-search"></i>
 										</span>
 										<input type="text" value={querry} onChange={(e) => SearchFilter(e.target.value)} className="form-control date-range bookingrange" placeholder="Search"
-											 />
+										/>
 									</div>
-									
+
 
 									<div className="dropdown mb-3">
 										<a href="javascript:void(0);" className="btn btn-outline-light bg-white dropdown-toggle"
 											data-bs-toggle="dropdown"><i className="ti ti-sort-ascending-2 me-2"></i>Sort by A-Z
 										</a>
 										<ul className="dropdown-menu p-3">
-                                            <li>
-                                                <a
-                                                    href="javascript:void(0);"
-                                                    className="dropdown-item rounded-1"
-                                                    onClick={() => handleSort('asc')}
-                                                >
-                                                    Ascending
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a
-                                                    href="javascript:void(0);"
-                                                    className="dropdown-item rounded-1"
-                                                    onClick={() => handleSort('desc')}
-                                                >
-                                                    Descending
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a
-                                                    href="javascript:void(0);"
-                                                    className="dropdown-item rounded-1"
-                                                    onClick={() => handleSort('recentlyViewed')}
-                                                >
-                                                    Recently Viewed
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a
-                                                    href="javascript:void(0);"
-                                                    className="dropdown-item rounded-1"
-                                                    onClick={() => handleSort('recentlyAdded')}
-                                                >
-                                                    Recently Added
-                                                </a>
-                                            </li>
-                                        </ul>
+											<li>
+												<a
+													href="javascript:void(0);"
+													className="dropdown-item rounded-1"
+													onClick={() => handleSort('asc')}
+												>
+													Ascending
+												</a>
+											</li>
+											<li>
+												<a
+													href="javascript:void(0);"
+													className="dropdown-item rounded-1"
+													onClick={() => handleSort('desc')}
+												>
+													Descending
+												</a>
+											</li>
+											<li>
+												<a
+													href="javascript:void(0);"
+													className="dropdown-item rounded-1"
+													onClick={() => handleSort('recentlyViewed')}
+												>
+													Recently Viewed
+												</a>
+											</li>
+											<li>
+												<a
+													href="javascript:void(0);"
+													className="dropdown-item rounded-1"
+													onClick={() => handleSort('recentlyAdded')}
+												>
+													Recently Added
+												</a>
+											</li>
+										</ul>
 									</div>
 								</div>
 							</div>
@@ -259,49 +208,145 @@ function BookIssue() {
 								{/* <!-- Student List --> */}
 								<div className="custom-datatable-filter table-responsive">
 									<table className="table datatable">
+
 										<thead className="thead-light">
 											<tr>
-												
 												<th>ID</th>
 												<th>Date of Issue</th>
 												<th>Due Date</th>
-												<th>Issue To</th>
-												<th>Books Issued</th>
-												<th>Book Returned</th>
-												<th>Issue Status</th>
+												<th> Book Name</th>
+												<th>Book publisher</th>
+												<th>Student Name</th>
+												<th>Student Class</th>
+												<th>requested Date</th>
 												<th></th>
 											</tr>
 										</thead>
 										<tbody>
-										{(SearchData || BookLists).map((issue, index) =>
+											{(SearchData || BookLists).map((issue, index) =>
 
-													<tr key={index}>
-														
-														<td><a href="#" className="link-primary">{issue.ID}</a></td>
-														<td>{issue.issueDate}</td>
-														<td>{issue.returnDate}</td>
-														<td>
-															<div className="d-flex align-items-center">
-																<a href="student-details.html" className="avatar avatar-md"><img
-																	src={issue.img}
-																	className="img-fluid rounded-circle" alt="img" /></a>
-																<div className="ms-2">
-																	<p className="text-dark mb-0"><a href="student-details.html">{issue.name}</a>
-																	</p>
-																	<span className="fs-12">{issue.class}</span>
+												<tr key={index}>
+
+													<td><a href="#" className="link-primary">{issue.bookID?.bookID}</a></td>
+													<td>{issue?.issueDate ? new Date(issue?.issueDate)?.toISOString().split("T")[0] : ""}</td>
+													<td>{issue?.dueDate ? new Date(issue?.dueDate)?.toISOString().split("T")[0] : ""}</td>
+
+													<td>
+														<div className="d-flex align-items-center">
+															<div className="ms-2">
+																<p className="text-dark mb-0"><a href="student-details.html">{issue.bookID?.bookName}</a>
+																</p>
+																<span className="fs-12">{issue?.bookID?.publicationYear}</span>
+															</div>
+														</div>
+													</td>
+													<td>{issue?.bookID?.publisher}</td>
+													<td>{issue?.studentID?.personalDetails?.firstName}</td>
+													<td>{issue?.studentID?.class}</td>
+													<td>{issue?.requestedDate ? new Date(issue?.requestedDate)?.toISOString().split("T")[0] : ""}</td>
+													<td className=''>
+														<a href="#" className="btn btn-light add-fee border " data-bs-toggle="modal"
+															data-bs-target="#book_details">view</a>
+													</td>
+													{/* <!-- Book Details --> */}
+													<div class="modal fade bookissue-popup" id="book_details">
+														<div class="modal-dialog modal-dialog-centered modal-lg">
+															<div class="modal-content">
+																{/* <!-- Modal Header --> */}
+																<div class="modal-header">
+																	<h4 class="modal-title">Details</h4>
+																	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+																</div>
+																{/* <!-- Modal Body --> */}
+																<div class="modal-body">
+																	{/* <img src={issue?.bookID?.coverImageURL} className=" rounded-circle " alt="img"  style={{textAlign:"center"}}/> */}
+																	{/* <!-- Personal Information Section --> */}
+																	<div class="section">
+																		<div class="row">
+																			<div class="col-md-4 ">
+																				<img src="https://m.media-amazon.com/images/I/71rwXolXIlL._UF1000,1000_QL80_.jpg" className=" " alt="img" style={{ width: "100%", height: "200px" }} />
+																			</div>
+																			<div className="col-8">
+																				<div class="info-box mb-4 mt-2">
+																					<label>Book Number</label>
+																					<p>{issue.bookID?.bookNumber}</p>
+																				</div>
+																				<div class="info-box">
+																					<label>Book Request Date</label>
+																					<p>{issue?.requestedDate ? new Date(issue?.requestedDate)?.toISOString().split("T")[0] : ""}</p>
+																				</div>
+
+																			</div>
+																		</div>
+																		<div className="row">
+																			<div class="col-md-6 info-box mt-2">
+																				<label>Student ID</label>
+																				<p>{issue?.studentID?.personalDetails?.firstName + " " + issue?.studentID?.personalDetails?.lastName}</p>
+																				{/* <p>{issue?.studentID?.studentID}</p> */}
+																			</div>
+																			<div class="col-md-6 info-box mt-2">
+																				<label>Book Name</label>
+																				<p>{issue.bookID?.bookName}</p>
+																			</div>
+																			<div class="col-md-6 info-box">
+																				<label>Contact</label>
+																				<p>{issue.studentID?.contactInfo?.mobile ? issue.studentID?.contactInfo?.mobile : issue.studentID?.contactInfo?.email}</p>
+																			</div>
+																			<div class="col-md-6 info-box">
+																				<label>Author</label>
+																				<p>{issue.bookID?.author}</p>
+																			</div>
+																		</div>
+
+																		{/* </div> */}
+																	</div>
+
+																	{/* <!-- Fee Status Section --> */}
+																	<div class="section">
+																		<div class="row">
+																			<div class="col-md-4 text-center">
+																				<div class="status-box border" style={{ backgroundColor: "#a0a6aa87" }}>
+																					<label className='color-dark'>Price</label>
+																					<h5>₹ {issue?.bookID?.price}</h5>
+																				</div>
+																			</div>
+																			<div class="col-md-4 text-center">
+																				<div class="status-box" style={{ backgroundColor: "rgb(148 109 109 / 84%)" }}>
+																					<label>Due Date</label>
+																					<p>{issue?.dueDate ? new Date(issue?.dueDate)?.toISOString().split("T")[0] : ""}</p>
+																				</div>
+																			</div>
+																			<div class="col-md-4 text-center">
+																				<div class="status-box " style={{ backgroundColor: "rgb(150 189 208 / 74%)" }}>
+																					<label>Status</label>
+																					<h5>{issue?.status}</h5>
+																				</div>
+																			</div>
+
+																		</div>
+																	</div>
+																	<div className='text-center'>
+																		{issue?.status === "Requested" ? (
+																			<div>
+																				<button className='btn btn-info me-3' onClick={() => { handleConform(issue?._id) }}>Confirm</button>
+																				<button className='btn btn-danger' onClick={() => { handleReject(issue?._id) }}>Reject</button>
+																			</div>
+																		) : (
+																			<div>
+																				<button className='btn btn-info me-3' onClick={() => { handleReturn(issue?._id) }}>Returned</button>
+																				<button className='btn btn-danger' onClick={() => { handleReject(issue?._id) }}>Overdue</button>
+																			</div>
+																		)}
+																	</div>
+
 																</div>
 															</div>
-														</td>
-														<td>{issue.booksIssued}</td>
-														<td>{issue.booksReturned}</td>
-														<td>Book Issued</td>
-														<td>
-															<a href="#" className="btn btn-light add-fee" data-bs-toggle="modal"
-																data-bs-target="#book_details">View Details</a>
-														</td>
-													</tr>
-												)
-											}
+														</div>
+													</div>
+
+													{/* <!-- Book Details --> */}
+												</tr>
+											)}
 
 										</tbody>
 									</table>
@@ -316,66 +361,7 @@ function BookIssue() {
 				{/* <!-- /Page Wrapper --> */}
 
 
-				{/* <!-- Book Details --> */}
-				<div className="modal fade" id="book_details">
-					<div className="modal-dialog modal-dialog-centered  modal-lg">
-						<div className="modal-content">
-							<div className="modal-header">
-								<h4 className="modal-title">View Details</h4>
-								<button type="button" className="btn-close custom-btn-close" data-bs-dismiss="modal"
-									aria-label="Close">
-									<i className="ti ti-x"></i>
-								</button>
-							</div>
-							<div className="modal-body">
-								<div className="view-book">
-									<div className="view-book-title">
-										<h5>Issue Book Details</h5>
-									</div>
-									<div className="book-issue-details">
 
-										<div className="book-details-head">
-											<span className="text-primary">IB853629</span>
-											<h6><span>Issue Date :</span> 19 May 2024</h6>
-										</div>
-										<ul className="book-taker-info">
-											<li>
-												<div className="d-flex align-items-center">
-													<span className="student-img">
-														<img src="assets/img/students/student-01.jpg"
-															className="img-fluid rounded-circle" alt="Img" />
-													</span>
-													<h6>Janet <br /> III, A</h6>
-												</div>
-											</li>
-											<li>
-												<span>Roll No</span>
-												<h6>35010</h6>
-											</li>
-											<li>
-												<span>Book Name</span>
-												<h6>Echoes of Eternity</h6>
-											</li>
-											<li>
-												<span>Book No</span>
-												<h6>501</h6>
-											</li>
-											<li>
-												<span>Due Date</span>
-												<h6>19 May 2024</h6>
-											</li>
-											<li>
-												<span>Book Remark</span>
-												<h6>fee for let submition</h6>
-											</li>
-										</ul>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				{/* <!-- Book Details --> */}
 			</div>
 			{/* <!-- /Main Wrapper -->  */}
 		</>
