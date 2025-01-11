@@ -18,8 +18,11 @@ const AddClass = () => {
         courseYear: Yup.number()
             .typeError("Course Year must be a number")
             .required("Course Year is required"),
-
+        courseType: Yup.string()
+            .oneOf(["Diploma", "Degree", "Class", "Certification"], "Invalid Course Type")
+            .required("Course Type is required"),
     });
+
 
     const { userId } = useContext(MainContext);
     // Initial form values
@@ -33,6 +36,7 @@ const AddClass = () => {
         courseDepartment: "",
         courseSemester: "",
         courseYear: "",
+        courseType: "",
 
     };
 
@@ -181,6 +185,17 @@ const AddClass = () => {
                                         component="div"
                                         className="error fs-6"
                                     />
+                                </div>
+                                <div className="col-6 mt-3">
+                                    <label htmlFor="courseType">Course Type</label>
+                                    <Field as="select" id="courseType" name="courseType" className="form-select">
+                                        <option value="">Select Course Type</option>
+                                        <option value="Diploma">Diploma</option>
+                                        <option value="Degree">Degree</option>
+                                        <option value="Class">Class</option>
+                                        <option value="Certification">Certification</option>
+                                    </Field>
+                                    <ErrorMessage name="courseType" component="div" className="text-danger" />
                                 </div>
 
                                 <div className="col-6 mt-4" style={{ color: "black" }}>
